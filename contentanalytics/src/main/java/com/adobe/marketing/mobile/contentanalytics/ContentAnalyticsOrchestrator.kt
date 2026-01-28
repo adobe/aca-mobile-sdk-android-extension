@@ -598,12 +598,9 @@ internal class ContentAnalyticsOrchestrator(
         
         Log.trace(TAG, TAG, "Using stored definition for featurization: $experienceId")
         
-        // Convert to {value, style} format for featurization service
+        // Convert to {value} format for featurization service (no empty style objects)
         val imagesData = assetURLs.map { assetURL ->
-            mapOf(
-                "value" to assetURL,
-                "style" to emptyMap<String, Any>()
-            )
+            mapOf("value" to assetURL)
         }
         
         val textsData = textContent.map { it.toMap() }
