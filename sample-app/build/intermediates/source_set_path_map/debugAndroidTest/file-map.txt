@@ -1,0 +1,6 @@
+com.adobe.marketing.mobile.contentanalytics.sample.test.sample-app-jetified-core-1.5.0-0 /Users/prazvan/.gradle/caches/transforms-3/4c1c79c282e285639ab00b5a2aa6fcff/transformed/jetified-core-1.5.0/res
+com.adobe.marketing.mobile.contentanalytics.sample.test.sample-app-jetified-annotation-experimental-1.3.0-1 /Users/prazvan/.gradle/caches/transforms-3/870b2240248359dc83338c6965cbe272/transformed/jetified-annotation-experimental-1.3.0/res
+com.adobe.marketing.mobile.contentanalytics.sample.test.sample-app-androidTest-2 /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/build/generated/res/resValues/androidTest/debug
+com.adobe.marketing.mobile.contentanalytics.sample.test.sample-app-mergeDebugAndroidTestResources-3 /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
+com.adobe.marketing.mobile.contentanalytics.sample.test.sample-app-mergeDebugAndroidTestResources-4 /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
+com.adobe.marketing.mobile.contentanalytics.sample.test.sample-app-merged_res-5 /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/build/intermediates/merged_res/debugAndroidTest

@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.adobe.marketing.mobile.contentanalytics.sample.sample-app-mergeReleaseResources-51:/values-hdpi-v4/values-hdpi-v4.xml",
+            "map": [
+                {
+                    "source": "/Users/prazvan/.gradle/caches/transforms-3/10a14cd09721c95dd630853403daec3b/transformed/appcompat-1.0.0/res/values-hdpi-v4/values-hdpi-v4.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "13",
+                        "endOffsets": "327"
+                    }
+                }
+            ]
+        }
+    ]
+}

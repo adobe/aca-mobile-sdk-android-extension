@@ -1,0 +1,7 @@
+#Thu Jan 08 18:41:22 EET 2026
+base.1=/Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/build/intermediates/dex/release/mergeDexRelease/classes2.dex
+path.1=classes2.dex
+base.0=/Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/build/intermediates/dex/release/mergeDexRelease/classes.dex
+renamed.1=classes2.dex
+renamed.0=classes.dex
+path.0=classes.dex

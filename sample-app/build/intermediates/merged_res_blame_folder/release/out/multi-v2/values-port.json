@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.adobe.marketing.mobile.contentanalytics.sample.sample-app-mergeReleaseResources-51:/values-port/values-port.xml",
+            "map": [
+                {
+                    "source": "/Users/prazvan/.gradle/caches/transforms-3/10a14cd09721c95dd630853403daec3b/transformed/appcompat-1.0.0/res/values-port/values-port.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "55",
+                        "endOffsets": "106"
+                    }
+                }
+            ]
+        }
+    ]
+}
