@@ -36,9 +36,11 @@ class ContentAnalyticsOrchestratorTest {
         xdmEventBuilder = XDMEventBuilder
         batchCoordinator = mock()
         
+        val featurizationCoordinator = FeaturizationCoordinator(state, privacyValidator)
+        
         orchestrator = ContentAnalyticsOrchestrator(
             state, eventDispatcher, privacyValidator, 
-            xdmEventBuilder, batchCoordinator
+            xdmEventBuilder, featurizationCoordinator, batchCoordinator
         )
         
         // Default: allow data collection

@@ -28,8 +28,8 @@ internal class ContentAnalyticsOrchestrator(
     private val eventDispatcher: EventDispatcher,
     private val privacyValidator: PrivacyValidator,
     private val xdmEventBuilder: XDMEventBuilder,
-    private val batchCoordinator: BatchCoordinator?,
-    private var featurizationHitQueue: PersistentHitQueue? = null
+    private val featurizationCoordinator: FeaturizationCoordinator,
+    private val batchCoordinator: BatchCoordinator?
 ) {
     
     companion object {
@@ -40,26 +40,14 @@ internal class ContentAnalyticsOrchestrator(
      * Check if featurization queue is already initialized.
      * Used by extension to avoid recreating the queue on every config change.
      */
-    fun hasFeaturizationQueue(): Boolean = featurizationHitQueue != null
+    fun hasFeaturizationQueue(): Boolean = featurizationCoordinator.hasQueue
     
     /**
      * Initializes the featurization hit queue if not already created (lazy initialization).
-     * Only called once when valid configuration first becomes available.
+     * Delegates to FeaturizationCoordinator which handles thread safety.
      */
     fun initializeFeaturizationQueueIfNeeded(queue: PersistentHitQueue?) {
-        // Only set queue if it doesn't exist yet
-        if (featurizationHitQueue != null) {
-            Log.trace(TAG, TAG, "Featurization queue already initialized - skipping")
-            return
-        }
-        
-        featurizationHitQueue = queue
-        
-        if (featurizationHitQueue != null) {
-            Log.debug(TAG, TAG, "✅ Featurization queue initialized successfully")
-        } else {
-            Log.debug(TAG, TAG, "Featurization queue not yet available (waiting for valid configuration)")
-        }
+        featurizationCoordinator.initializeQueue(queue)
     }
     
     /**
@@ -129,7 +117,12 @@ internal class ContentAnalyticsOrchestrator(
             identifier = { it.experienceId },
             shouldExclude = { shouldExcludeExperienceEvent(it) },
             preProcessing = { preprocessExperienceDefinition(it) },
-            addToBatch = { batchCoordinator?.addExperienceEvent(it) },
+            addToBatch = { 
+                // Only add interaction events (view/click) to batch, skip definition events
+                if (it.experienceAction?.isDefinitionAction() != true) {
+                    batchCoordinator?.addExperienceEvent(it)
+                }
+            },
             sendImmediately = { sendExperienceEventImmediately(it) }
         )
     }
@@ -556,110 +549,12 @@ internal class ContentAnalyticsOrchestrator(
     }
     
     
+    /**
+     * Queue experience definition to featurization service for ML training
+     * Delegates to FeaturizationCoordinator which handles all validation and queueing logic
+     */
     private fun sendExperienceDefinitionToFeaturization(experienceId: String, events: List<Event>) {
-        // Check consent for direct HTTP calls (Edge Network events are validated by Edge extension, but featurization bypasses Edge)
-        if (!privacyValidator.isDataCollectionAllowed()) {
-            Log.debug(TAG, TAG, "❌ Skipping featurization - consent denied (check privacy validator logs above for details)")
-            return
-        }
-        
-        Log.debug(TAG, TAG, "✅ Privacy check passed - proceeding with featurization")
-        
-        val config = state.configuration
-        if (config == null) {
-            Log.debug(TAG, TAG, "❌ Skipping featurization - No configuration available")
-            return
-        }
-        
-        val serviceUrl = config.getFeaturizationBaseUrl()
-        if (serviceUrl.isNullOrEmpty()) {
-            Log.debug(TAG, TAG, "❌ Skipping featurization - Cannot determine featurization URL | edge.domain: ${config.edgeDomain} | region: ${config.region}")
-            return
-        }
-        
-        val imsOrg = config.experienceCloudOrgId
-        if (imsOrg.isNullOrEmpty()) {
-            Log.debug(TAG, TAG, "❌ Skipping featurization - IMS Org not configured | experienceCloud.org: ${config.experienceCloudOrgId}")
-            return
-        }
-        
-        Log.debug(TAG, TAG, "✅ Configuration valid | URL: $serviceUrl | Org: $imsOrg")
-        
-        // Get definition from state (registerExperience() must be called first)
-        val definition = state.getExperienceDefinition(experienceId)
-        if (definition == null) {
-            Log.warning(TAG, TAG, "No definition found for experience: $experienceId - registerExperience() must be called first")
-            return
-        }
-        
-        val assetURLs = definition.assets
-        val textContent = definition.texts
-        val buttonContent = definition.ctas
-        
-        Log.trace(TAG, TAG, "Using stored definition for featurization: $experienceId")
-        
-        // Convert to {value} format for featurization service (no empty style objects)
-        val imagesData = assetURLs.map { assetURL ->
-            mapOf("value" to assetURL)
-        }
-        
-        val textsData = textContent.map { it.toMap() }
-        val ctasData = if (buttonContent != null && buttonContent.isNotEmpty()) {
-            buttonContent.map { it.toMap() }
-        } else null
-        
-        val contentData = ContentData(
-            images = imagesData,
-            texts = textsData,
-            ctas = ctasData
-        )
-        
-        // datastreamId is required - ensure it's present
-        val datastreamId = config.datastreamId
-        if (datastreamId.isNullOrEmpty()) {
-            Log.error(
-                ContentAnalyticsConstants.LOG_TAG,
-                TAG,
-                "Cannot send experience to featurization - datastreamId not configured"
-            )
-            return
-        }
-        
-        val content = ExperienceContent(
-            content = contentData,
-            orgId = imsOrg,
-            datastreamId = datastreamId,
-            experienceId = experienceId
-        )
-        
-        val hit = FeaturizationHit(
-            experienceId = experienceId,
-            imsOrg = imsOrg,
-            content = content,
-            timestamp = Date().time,
-            attemptCount = 0
-        )
-        
-        // Serialize hit to JSON
-        val hitJson = try {
-            hit.toJson()
-        } catch (e: Exception) {
-            Log.warning(TAG, TAG, "Failed to encode featurization hit | ExperienceID: $experienceId")
-            return
-        }
-        
-        val dataEntity = com.adobe.marketing.mobile.services.DataEntity(
-            hitJson
-        )
-        
-        // Queue hit (persisted to disk and retried automatically)
-        // Use local reference to avoid smart cast issues with mutable property
-        val queue = featurizationHitQueue
-        if (queue != null && queue.queue(dataEntity)) {
-            Log.debug(TAG, TAG, "Experience queued for featurization | ID: $experienceId")
-        } else {
-            Log.warning(TAG, TAG, "Failed to queue experience for featurization | ID: $experienceId")
-        }
+        featurizationCoordinator.queueExperience(experienceId)
     }
     
 }

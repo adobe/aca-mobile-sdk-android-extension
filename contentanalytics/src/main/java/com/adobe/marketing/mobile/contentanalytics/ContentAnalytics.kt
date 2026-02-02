@@ -51,6 +51,16 @@ object ContentAnalytics {
         assetLocation: String? = null,
         additionalData: Map<String, Any>? = null
     ) {
+        // Validation
+        if (assetURL.isBlank()) {
+            com.adobe.marketing.mobile.services.Log.warning(
+                ContentAnalyticsConstants.LOG_TAG,
+                ContentAnalyticsConstants.LOG_TAG,
+                "trackAsset called with empty assetURL - ignoring"
+            )
+            return
+        }
+        
         val eventData = mutableMapOf<String, Any>(
             ContentAnalyticsConstants.EventDataKeys.ASSET_URL to assetURL,
             ContentAnalyticsConstants.EventDataKeys.ASSET_ACTION to interactionType.stringValue
@@ -123,6 +133,25 @@ object ContentAnalytics {
         texts: List<ContentItem>,
         ctas: List<ContentItem>? = null
     ): String {
+        // Validation
+        if (assets.isEmpty()) {
+            com.adobe.marketing.mobile.services.Log.warning(
+                ContentAnalyticsConstants.LOG_TAG,
+                ContentAnalyticsConstants.LOG_TAG,
+                "registerExperience called with empty assets list - ignoring"
+            )
+            return ""
+        }
+        
+        if (texts.isEmpty()) {
+            com.adobe.marketing.mobile.services.Log.warning(
+                ContentAnalyticsConstants.LOG_TAG,
+                ContentAnalyticsConstants.LOG_TAG,
+                "registerExperience called with empty texts list - ignoring"
+            )
+            return ""
+        }
+        
         // Generate experienceId from content hash
         val experienceId = ContentAnalyticsUtilities.generateExperienceId(
             assets = assets,
@@ -161,6 +190,16 @@ object ContentAnalytics {
         experienceLocation: String? = null,
         additionalData: Map<String, Any>? = null
     ) {
+        // Validation
+        if (experienceId.isBlank()) {
+            com.adobe.marketing.mobile.services.Log.warning(
+                ContentAnalyticsConstants.LOG_TAG,
+                ContentAnalyticsConstants.LOG_TAG,
+                "trackExperienceView called with empty experienceId - ignoring"
+            )
+            return
+        }
+        
         val eventData = mutableMapOf<String, Any>(
             ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ID to experienceId,
             ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ACTION to InteractionType.VIEW.stringValue
@@ -190,6 +229,16 @@ object ContentAnalytics {
         experienceLocation: String? = null,
         additionalData: Map<String, Any>? = null
     ) {
+        // Validation
+        if (experienceId.isBlank()) {
+            com.adobe.marketing.mobile.services.Log.warning(
+                ContentAnalyticsConstants.LOG_TAG,
+                ContentAnalyticsConstants.LOG_TAG,
+                "trackExperienceClick called with empty experienceId - ignoring"
+            )
+            return
+        }
+        
         val eventData = mutableMapOf<String, Any>(
             ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ID to experienceId,
             ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ACTION to InteractionType.CLICK.stringValue
@@ -223,6 +272,16 @@ object ContentAnalytics {
         interactionType: InteractionType = InteractionType.VIEW,
         assetLocation: String? = null
     ) {
+        // Validation
+        if (assetURLs.isEmpty()) {
+            com.adobe.marketing.mobile.services.Log.warning(
+                ContentAnalyticsConstants.LOG_TAG,
+                ContentAnalyticsConstants.LOG_TAG,
+                "trackAssetCollection called with empty assetURLs list - ignoring"
+            )
+            return
+        }
+        
         assetURLs.forEach { assetURL ->
             trackAsset(assetURL, interactionType, assetLocation)
         }

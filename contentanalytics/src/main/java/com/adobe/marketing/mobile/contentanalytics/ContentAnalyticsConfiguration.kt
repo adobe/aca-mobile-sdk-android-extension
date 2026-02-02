@@ -33,9 +33,9 @@ internal data class ContentAnalyticsConfiguration(
     val featurizationRetryDelay: Long = ContentAnalyticsConstants.Defaults.FEATURIZATION_RETRY_DELAY,
     
     val batchingEnabled: Boolean = ContentAnalyticsConstants.Defaults.BATCHING_ENABLED,
-    val maxBatchSize: Int = ContentAnalyticsConstants.Defaults.MAX_BATCH_SIZE,
+    val maxBatchSize: Int = ContentAnalyticsConstants.Defaults.DEFAULT_BATCH_SIZE,
     val batchFlushInterval: Long = ContentAnalyticsConstants.Defaults.BATCH_FLUSH_INTERVAL,
-    val maxWaitTime: Double = (ContentAnalyticsConstants.Defaults.BATCH_FLUSH_INTERVAL * 2.5) / 1000.0,
+    val maxWaitTime: Double = (ContentAnalyticsConstants.Defaults.BATCH_FLUSH_INTERVAL * ContentAnalyticsConstants.Defaults.MAX_WAIT_TIME_MULTIPLIER) / 1000.0,
     
     val debugLogging: Boolean = false
 ) {
@@ -186,8 +186,8 @@ internal data class ContentAnalyticsConfiguration(
                 batchingEnabled = data[ContentAnalyticsConstants.ConfigurationKeys.BATCHING_ENABLED] as? Boolean
                     ?: ContentAnalyticsConstants.Defaults.BATCHING_ENABLED,
                 
-                maxBatchSize = (data[ContentAnalyticsConstants.ConfigurationKeys.MAX_BATCH_SIZE] as? Number)?.toInt()
-                    ?: ContentAnalyticsConstants.Defaults.MAX_BATCH_SIZE,
+                maxBatchSize = (data[ContentAnalyticsConstants.ConfigurationKeys.MAX_BATCH_SIZE_KEY] as? Number)?.toInt()
+                    ?: ContentAnalyticsConstants.Defaults.DEFAULT_BATCH_SIZE,
                 
                 batchFlushInterval = (data[ContentAnalyticsConstants.ConfigurationKeys.BATCH_FLUSH_INTERVAL] as? Number)?.toLong()
                     ?: ContentAnalyticsConstants.Defaults.BATCH_FLUSH_INTERVAL

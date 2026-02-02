@@ -68,6 +68,10 @@ internal class ContentAnalyticsExtension(extensionApi: ExtensionApi) : Extension
         
         Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "ContentAnalytics extension registered")
         
+        // Initialize persistent storage for experience definitions (restored from disk on set)
+        val definitionsQueue = factory.createDefinitionsDataQueue()
+        stateManager.setDefinitionsDataQueue(definitionsQueue)
+        
         val defaultConfig = ContentAnalyticsConfiguration()
         stateManager.updateConfiguration(defaultConfig)
         orchestrator.updateConfiguration(defaultConfig)
@@ -91,7 +95,13 @@ internal class ContentAnalyticsExtension(extensionApi: ExtensionApi) : Extension
     
     override fun onUnregistered() {
         super.onUnregistered()
-        Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "Content Analytics extension unregistered")
+        Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "Content Analytics extension unregistered - cleaning up resources")
+        
+        // Clean up BatchCoordinator resources (handlers, timers, coroutines)
+        batchCoordinator?.close()
+        
+        // Reset state
+        stateManager.reset()
     }
     
     override fun readyForEvent(event: Event): Boolean {

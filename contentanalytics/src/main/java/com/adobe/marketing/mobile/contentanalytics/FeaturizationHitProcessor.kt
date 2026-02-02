@@ -98,7 +98,7 @@ internal class FeaturizationHitProcessor(
         val datastreamId = hit.content.datastreamId
         if (datastreamId.isEmpty()) {
             Log.error(TAG, TAG, "❌ Cannot check experience - datastreamId is empty | ID: ${hit.experienceId}")
-            completion(false) // Don't retry - configuration error
+            completion(true) // Drop hit - configuration error, won't be fixed by retrying
             return
         }
         
@@ -142,7 +142,7 @@ internal class FeaturizationHitProcessor(
         val datastreamId = hit.content.datastreamId
         if (datastreamId.isEmpty()) {
             Log.error(TAG, TAG, "❌ Cannot register experience - datastreamId is empty | ID: ${hit.experienceId}")
-            completion(false) // Don't retry - configuration error
+            completion(true) // Drop hit - configuration error, won't be fixed by retrying
             return
         }
         

@@ -17,6 +17,7 @@ import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.contentanalytics.ContentAnalyticsOrchestrator
 import com.adobe.marketing.mobile.contentanalytics.ContentAnalyticsStateManager
 import com.adobe.marketing.mobile.contentanalytics.EventDispatcher
+import com.adobe.marketing.mobile.contentanalytics.FeaturizationCoordinator
 import com.adobe.marketing.mobile.contentanalytics.PrivacyValidator
 import com.adobe.marketing.mobile.contentanalytics.XDMEventBuilder
 import org.junit.Before
@@ -40,11 +41,14 @@ internal abstract class ContentAnalyticsTestBase {
         privacyValidator = ContentAnalyticsMocks.createMockPrivacyValidator(allowDataCollection = true)
         state = ContentAnalyticsStateManager()
         
+        val featurizationCoordinator = FeaturizationCoordinator(state, privacyValidator)
+        
         orchestrator = ContentAnalyticsOrchestrator(
             state = state,
             eventDispatcher = eventDispatcher,
             privacyValidator = privacyValidator,
             xdmEventBuilder = XDMEventBuilder,
+            featurizationCoordinator = featurizationCoordinator,
             batchCoordinator = null
         )
     }

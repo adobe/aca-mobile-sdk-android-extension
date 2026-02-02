@@ -232,11 +232,14 @@ class ContentAnalyticsFactoryTest {
         stateManager.updateConfiguration(config)
         
         // When - Create orchestrator and send multiple events
+        val featurizationCoordinator = FeaturizationCoordinator(stateManager, mockPrivacyValidator)
+        
         val orchestrator = ContentAnalyticsOrchestrator(
             state = stateManager,
             eventDispatcher = mockDispatcher,
             privacyValidator = mockPrivacyValidator,
             xdmEventBuilder = XDMEventBuilder,
+            featurizationCoordinator = featurizationCoordinator,
             batchCoordinator = null
         )
         

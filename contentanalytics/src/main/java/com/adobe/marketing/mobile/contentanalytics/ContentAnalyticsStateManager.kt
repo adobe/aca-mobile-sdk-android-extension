@@ -12,6 +12,10 @@
 
 package com.adobe.marketing.mobile.contentanalytics
 
+import com.adobe.marketing.mobile.services.DataEntity
+import com.adobe.marketing.mobile.services.DataQueue
+import com.adobe.marketing.mobile.services.Log
+import org.json.JSONObject
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -19,126 +23,209 @@ import kotlin.concurrent.write
 /**
  * Thread-safe state manager for Content Analytics extension
  * 
- * Manages configuration and experience definitions in memory.
+ * Manages experience definitions in memory with disk persistence.
+ * Coordinates between ConfigurationManager, cache, and disk operations.
  * Uses read-write locks for thread safety with minimal contention.
  */
-internal class ContentAnalyticsStateManager {
+internal class ContentAnalyticsStateManager(
+    private val configManager: ConfigurationManaging = ConfigurationManager(),
+    private val definitionCache: DefinitionCacheProtocol = DefinitionCache(),
+    private val definitionRepository: DefinitionRepositoryProtocol = DefinitionRepository()
+) {
     
     private val lock = ReentrantReadWriteLock()
     
-    // Current configuration
-    @Volatile
-    private var _configuration: ContentAnalyticsConfiguration? = null
     
-    // Registered experience definitions (for asset attribution and featurization tracking)
-    private val experienceDefinitions = mutableMapOf<String, ExperienceDefinition>()
-    
-    // Experience definitions sent to featurization service (to avoid duplicates)
-    private val sentExperienceDefinitions = mutableSetOf<String>()
-    
+    // MARK: - Configuration Management (Delegated to ConfigurationManager)
     
     /**
      * Get current configuration (thread-safe)
      */
     val configuration: ContentAnalyticsConfiguration?
-        get() = _configuration
+        get() = configManager.getCurrentConfiguration()
     
     /**
      * Check if batching is enabled (convenience getter)
      */
     val batchingEnabled: Boolean
-        get() = _configuration?.batchingEnabled ?: ContentAnalyticsConstants.Defaults.BATCHING_ENABLED
+        get() = configManager.batchingEnabled
     
     /**
      * Update configuration (thread-safe)
      */
     fun updateConfiguration(config: ContentAnalyticsConfiguration) {
-        _configuration = config
+        configManager.updateConfiguration(config)
     }
     
+    /**
+     * Sets the persistent storage queue for experience definitions
+     * Should be called once during extension initialization
+     */
+    fun setDefinitionsDataQueue(queue: DataQueue?) {
+        // Set queue on repository
+        definitionRepository.setDataQueue(queue)
+        
+        if (queue != null) {
+            lock.write {
+                // Restore persisted definitions from disk
+                val cacheCapacity = 100 // LRU cache capacity
+                val definitions = definitionRepository.restoreAll(cacheCapacity)
+                
+                // Load restored definitions into cache
+                for (definition in definitions) {
+                    definitionCache.store(definition)
+                }
+                
+                Log.debug(
+                    ContentAnalyticsConstants.LOG_TAG,
+                    ContentAnalyticsConstants.LogLabels.STATE_MANAGER,
+                    "Restored ${definitions.size} definitions from disk to cache"
+                )
+            }
+        }
+    }
+    
+    
+    
+    // MARK: - URL Exclusion (Delegated to ConfigurationManager)
     
     /**
      * Check if a URL should be tracked (not excluded by patterns)
      */
-    fun shouldTrackUrl(url: String): Boolean = lock.read {
-        val config = _configuration ?: return true
-        return !config.shouldExcludeUrl(url)
+    fun shouldTrackUrl(url: String): Boolean {
+        return configManager.shouldTrackUrl(url)
     }
     
     /**
      * Check if an asset location should be tracked (not excluded)
      */
-    fun shouldTrackAssetLocation(location: String?): Boolean = lock.read {
-        val config = _configuration ?: return true
-        return !config.shouldExcludeAsset(location)
+    fun shouldTrackAssetLocation(location: String?): Boolean {
+        return configManager.shouldTrackAssetLocation(location)
     }
     
     /**
      * Check if an experience location should be tracked (not excluded by patterns)
      */
-    fun shouldTrackExperience(location: String?): Boolean = lock.read {
-        val config = _configuration ?: return true
-        return !config.shouldExcludeExperience(location)
+    fun shouldTrackExperience(location: String?): Boolean {
+        return configManager.shouldTrackExperience(location)
     }
     
     
     /**
      * Register an experience definition
+     * Persists to both memory and disk for crash resilience
      */
     fun registerExperienceDefinition(definition: ExperienceDefinition) = lock.write {
-        experienceDefinitions[definition.experienceId] = definition
+        // Store in memory
+        definitionCache.store(definition)
+        
+        // Persist to disk (delegated to repository)
+        definitionRepository.save(definition)
     }
+    
     
     /**
      * Get experience definition by ID
+     * Checks memory cache first, falls back to disk if not found (transparent lazy load)
      */
-    fun getExperienceDefinition(experienceId: String): ExperienceDefinition? = lock.read {
-        return experienceDefinitions[experienceId]
+    fun getExperienceDefinition(experienceId: String): ExperienceDefinition? {
+        // Fast path: Check memory cache first (read lock only)
+        lock.read {
+            definitionCache.get(experienceId)?.let { return it }
+        }
+        
+        // Slow path: Cache miss - try loading from disk (write lock to update cache)
+        return lock.write {
+            // Double-check in case another thread just loaded it
+            definitionCache.get(experienceId)?.let { return@write it }
+            
+            // Load from disk (delegated to repository)
+            val definition = definitionRepository.load(experienceId)
+            if (definition != null) {
+                // Restore to cache for future access
+                definitionCache.store(definition)
+            } else {
+                // Not found - warn developer about possible API misuse
+                Log.warning(
+                    ContentAnalyticsConstants.LOG_TAG,
+                    ContentAnalyticsConstants.LogLabels.STATE_MANAGER,
+                    "⚠️ Experience definition not found for '$experienceId'. " +
+                    "Make sure to call ContentAnalytics.trackExperience() with " +
+                    "interactionType: DEFINITION (including assetURLs and texts) before tracking views/clicks."
+                )
+            }
+            definition
+        }
     }
     
     /**
      * Get all registered experience definitions
      */
     fun getAllExperienceDefinitions(): List<ExperienceDefinition> = lock.read {
-        return experienceDefinitions.values.toList()
+        return definitionCache.getAllDefinitions()
     }
     
     /**
      * Clear all experience definitions
      */
     fun clearExperienceDefinitions() = lock.write {
-        experienceDefinitions.clear()
-        sentExperienceDefinitions.clear()
+        definitionCache.removeAll()
     }
     
     
     /**
      * Check if an experience definition has been sent to featurization service
+     * Checks memory cache first, falls back to disk if not found (transparent lazy load)
      */
     fun hasExperienceDefinitionBeenSent(experienceId: String): Boolean = lock.read {
-        return experienceId in sentExperienceDefinitions
+        // Check memory first
+        definitionCache.get(experienceId)?.let {
+            return it.sentToFeaturization
+        }
+        
+        // Check disk (delegated to repository)
+        val diskDef = definitionRepository.load(experienceId)
+        return diskDef?.sentToFeaturization ?: false
     }
     
     /**
      * Mark an experience definition as sent to featurization service
+     * Updates both memory and disk storage
+     * If not in memory cache, loads from disk first (transparent lazy load)
      */
     fun markExperienceDefinitionAsSent(experienceId: String) = lock.write {
-        sentExperienceDefinitions.add(experienceId)
+        // Try memory first
+        var definition = definitionCache.get(experienceId)
         
-        // Update the definition's sentToFeaturization flag
-        experienceDefinitions[experienceId]?.let { definition ->
-            experienceDefinitions[experienceId] = definition.copy(sentToFeaturization = true)
+        // Cache miss - load from disk (delegated to repository)
+        if (definition == null) {
+            definition = definitionRepository.load(experienceId)
+        }
+        
+        // Update definition if found (either in memory or on disk)
+        if (definition != null) {
+            val updatedDefinition = definition.copy(sentToFeaturization = true)
+            definitionCache.update(updatedDefinition)
+            
+            // Update persisted definition (delegated to repository)
+            definitionRepository.save(updatedDefinition)
         }
     }
     
     
     /**
      * Reset all state (used for identity reset)
+     * Clears both memory and disk storage
      */
     fun reset() = lock.write {
-        _configuration = null
-        experienceDefinitions.clear()
-        sentExperienceDefinitions.clear()
+        // Clear configuration (delegated to ConfigurationManager)
+        configManager.reset()
+        
+        // Clear in-memory definitions
+        definitionCache.removeAll()
+        
+        // Clear persisted definitions from disk (delegated to repository)
+        definitionRepository.clearAll()
     }
     
     
@@ -147,7 +234,7 @@ internal class ContentAnalyticsStateManager {
      * Used for asset attribution in experience events
      */
     fun getAssetsForExperience(experienceId: String): List<String> = lock.read {
-        return experienceDefinitions[experienceId]?.assets ?: emptyList()
+        return definitionCache.get(experienceId)?.assets ?: emptyList()
     }
     
     
@@ -155,14 +242,13 @@ internal class ContentAnalyticsStateManager {
      * Get count of registered experience definitions
      */
     fun getExperienceDefinitionCount(): Int = lock.read {
-        return experienceDefinitions.size
+        return definitionCache.count
     }
     
     /**
-     * Get count of sent experience definitions
+     * Get count of sent experience definitions (counts in-memory definitions only)
      */
     fun getSentExperienceDefinitionCount(): Int = lock.read {
-        return sentExperienceDefinitions.size
+        return definitionCache.getSentCount()
     }
 }
-

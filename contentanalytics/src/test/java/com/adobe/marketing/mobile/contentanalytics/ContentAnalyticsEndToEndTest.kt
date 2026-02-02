@@ -52,11 +52,14 @@ class ContentAnalyticsEndToEndTest {
         state = ContentAnalyticsStateManager()
         
         // Create orchestrator WITHOUT BatchCoordinator (immediate mode)
+        val featurizationCoordinator = FeaturizationCoordinator(state, privacyValidator)
+        
         orchestrator = ContentAnalyticsOrchestrator(
             state = state,
             eventDispatcher = eventDispatcher,
             privacyValidator = privacyValidator,
             xdmEventBuilder = XDMEventBuilder,
+            featurizationCoordinator = featurizationCoordinator,
             batchCoordinator = null  // No batching for E2E tests
         )
         
