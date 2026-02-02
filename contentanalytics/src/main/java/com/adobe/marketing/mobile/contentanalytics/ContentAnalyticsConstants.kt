@@ -89,7 +89,7 @@ internal object ContentAnalyticsConstants {
     object ConfigurationKeys {
         // Content Analytics specific keys
         const val BATCHING_ENABLED = "contentanalytics.batchingEnabled"
-        const val MAX_BATCH_SIZE = "contentanalytics.maxBatchSize"
+        const val MAX_BATCH_SIZE_KEY = "contentanalytics.maxBatchSize"
         const val BATCH_FLUSH_INTERVAL = "contentanalytics.batchFlushInterval"
         const val TRACK_EXPERIENCES = "contentanalytics.trackExperiences"
         const val EXCLUDED_ASSET_LOCATIONS_REGEXP = "contentanalytics.excludedAssetLocationsRegexp"
@@ -112,6 +112,7 @@ internal object ContentAnalyticsConstants {
     const val ASSET_BATCH_QUEUE_NAME = "com.adobe.module.contentanalytics.assetbatch"
     const val EXPERIENCE_BATCH_QUEUE_NAME = "com.adobe.module.contentanalytics.experiencebatch"
     const val FEATURIZATION_QUEUE_NAME = "com.adobe.module.contentanalytics.featurization"
+    const val DEFINITIONS_QUEUE_NAME = "com.adobe.module.contentanalytics.definitions"
     
     // Log Labels
     object LogLabels {
@@ -138,10 +139,19 @@ internal object ContentAnalyticsConstants {
     
     // Defaults
     object Defaults {
-        const val MAX_BATCH_SIZE = 10
+        // Batching configuration
+        const val DEFAULT_BATCH_SIZE = 10
+        const val MIN_BATCH_SIZE = 1
+        const val MAX_BATCH_SIZE_LIMIT = 100
         const val BATCH_FLUSH_INTERVAL = 2000L // milliseconds
+        const val DEFAULT_MAX_WAIT_TIME = 5.0 // seconds
+        const val MAX_WAIT_TIME_MULTIPLIER = 2.5
+        
+        // Feature flags
         const val TRACK_EXPERIENCES = true
         const val BATCHING_ENABLED = true
+        
+        // Featurization
         const val FEATURIZATION_MAX_RETRIES = 3
         const val FEATURIZATION_RETRY_DELAY = 500L // milliseconds
     }

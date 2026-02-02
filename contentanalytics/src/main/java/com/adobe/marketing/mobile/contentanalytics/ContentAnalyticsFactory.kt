@@ -46,15 +46,17 @@ internal class ContentAnalyticsFactory(
         privacyValidator = createPrivacyValidator()
         val xdmEventBuilder = createXDMEventBuilder()
         batchCoordinator = createBatchCoordinator()
-        val featurizationHitQueue = createFeaturizationHitQueue()
+        
+        // Create featurization coordinator (manages featurization logic)
+        val featurizationCoordinator = createFeaturizationCoordinator()
         
         val orchestrator = ContentAnalyticsOrchestrator(
             state = state,
             eventDispatcher = eventDispatcher,
             privacyValidator = privacyValidator!!,
             xdmEventBuilder = xdmEventBuilder,
-            batchCoordinator = batchCoordinator,
-            featurizationHitQueue = featurizationHitQueue
+            featurizationCoordinator = featurizationCoordinator,
+            batchCoordinator = batchCoordinator
         )
         
         batchCoordinator?.setCallbacks(
@@ -66,9 +68,13 @@ internal class ContentAnalyticsFactory(
             }
         )
         
-        Log.debug(TAG, TAG, "ContentAnalyticsOrchestrator created")
+        Log.debug(TAG, TAG, "ContentAnalyticsOrchestrator created with featurization coordinator")
         
         return orchestrator
+    }
+    
+    private fun createFeaturizationCoordinator(): FeaturizationCoordinator {
+        return FeaturizationCoordinator(state, privacyValidator!!)
     }
     
     /**
@@ -136,6 +142,26 @@ internal class ContentAnalyticsFactory(
         Log.debug(TAG, TAG, "BatchCoordinator created")
         
         return batchCoordinator
+    }
+    
+    /**
+     * Create definitions data queue for persistent experience definition storage
+     * Matches iOS createDefinitionsDataQueue()
+     */
+    fun createDefinitionsDataQueue(): com.adobe.marketing.mobile.services.DataQueue? {
+        val dataQueueService = ServiceProvider.getInstance().dataQueueService
+        
+        val dataQueue = dataQueueService.getDataQueue(
+            ContentAnalyticsConstants.DEFINITIONS_QUEUE_NAME
+        )
+        
+        if (dataQueue == null) {
+            Log.warning(TAG, TAG, "Failed to create data queue for experience definitions")
+            return null
+        }
+        
+        Log.debug(TAG, TAG, "✅ Definitions data queue created")
+        return dataQueue
     }
     
     /**
