@@ -154,7 +154,6 @@ internal class ContentAnalyticsExtension(extensionApi: ExtensionApi) : Extension
             handleIdentityReset(event)
         }
         
-        // Lifecycle events (for background flush)
         api.registerEventListener(
             EventType.GENERIC_LIFECYCLE,
             EventSource.APPLICATION_CLOSE
@@ -162,7 +161,6 @@ internal class ContentAnalyticsExtension(extensionApi: ExtensionApi) : Extension
             handleApplicationClose(event)
         }
         
-        // Hub shared state changes (for privacy validator cache)
         api.registerEventListener(
             EventType.HUB,
             EventSource.SHARED_STATE
@@ -258,13 +256,11 @@ internal class ContentAnalyticsExtension(extensionApi: ExtensionApi) : Extension
     
     private fun parseConfiguration(configData: Map<String, Any?>): Boolean {
         return try {
-            // Strip "contentanalytics." prefix from prefixed keys, keep non-prefixed keys (like iOS)
-            // This allows us to read edge.domain, edge.configId, experienceCloud.org, etc.
             val strippedConfig = configData.mapKeys { (key, _) ->
                 if (key.startsWith("contentanalytics.")) {
                     key.removePrefix("contentanalytics.")
                 } else {
-                    key  // Keep non-prefixed keys (edge.*, experienceCloud.*, etc.)
+                    key
                 }
             }
             

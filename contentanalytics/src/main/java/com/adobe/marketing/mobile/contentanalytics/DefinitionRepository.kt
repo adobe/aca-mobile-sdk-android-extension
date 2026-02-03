@@ -21,51 +21,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-/**
- * Manages persistent storage of experience definitions
- *
- * Responsibilities:
- * - Save definitions to disk (DataQueue)
- * - Load definitions from disk
- * - Restore all persisted definitions on startup
- * - Maintain disk index for fast lookups
- * - Handle deduplication of persisted definitions
- *
- * Thread-safe: All operations use read-write locks
- */
 internal class DefinitionRepository : DefinitionRepositoryProtocol {
-    
-    // MARK: - Private Properties
     
     private val lock = ReentrantReadWriteLock()
     
-    /** Persistent storage queue (DataQueue backed by SQLite) */
     @Volatile
     private var dataQueue: DataQueue? = null
-    
-    /** In-memory index mapping experienceId -> DataEntity.uniqueIdentifier */
     private val diskIndex = mutableMapOf<String, String>()
     
-    // MARK: - Configuration
-    
-    /**
-     * Set the DataQueue for persistence
-     * @param queue DataQueue to use for storage
-     *
-     * Should be called once during initialization
-     */
     override fun setDataQueue(queue: DataQueue?) {
         dataQueue = queue
     }
     
-    // MARK: - Persistence Operations
-    
-    /**
-     * Save a definition to disk
-     * @param definition Definition to persist
-     *
-     * Uses experienceId as unique identifier to enable updates
-     */
     override fun save(definition: ExperienceDefinition) {
         lock.write {
             val queue = dataQueue ?: return@write
@@ -75,8 +42,6 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
             val jsonObject = JSONObject(definitionMap)
             val dataString = jsonObject.toString()
             
-            // Create truly unique identifier (experienceId + timestamp)
-            // We use experienceId as prefix to enable deduplication during restore
             val timestamp = System.currentTimeMillis()
             val uniqueIdentifier = "experience_${definition.experienceId}_$timestamp"
             
@@ -86,9 +51,7 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
                 dataString
             )
             
-            // DataQueue allows duplicate uniqueIdentifiers - deduplication happens during restore
             if (queue.add(entity)) {
-                // Update disk index (track that this experienceId exists on disk)
                 diskIndex[definition.experienceId] = uniqueIdentifier
                 
                 Log.trace(
@@ -107,18 +70,11 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
         }
     }
     
-    /**
-     * Load a definition from disk by experienceId
-     * @param experienceId ID of definition to load
-     * @return Definition if found, null otherwise
-     *
-     * Uses disk index for O(1) existence check before scanning
-     */
     override fun load(experienceId: String): ExperienceDefinition? {
         return lock.read {
             val queue = dataQueue ?: return@read null
             
-            // Fast path: Check if this experienceId exists on disk using index
+            // Check index first to avoid expensive scan
             if (!diskIndex.containsKey(experienceId)) {
                 Log.trace(
                     ContentAnalyticsConstants.LOG_TAG,
@@ -128,7 +84,6 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
                 return@read null
             }
             
-            // Use scanner to find ALL matching definitions (there may be duplicates)
             val scanner = DataQueueScanner<ExperienceDefinition>(
                 queue = queue,
                 decoder = { entity ->
@@ -147,7 +102,7 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
             val entityPairs = scanner.scanWithEntities { it.experienceId == experienceId }
             
             if (entityPairs.isEmpty()) {
-                // Index said it exists, but we didn't find it - index may be stale
+                // Index is stale
                 Log.warning(
                     ContentAnalyticsConstants.LOG_TAG,
                     ContentAnalyticsConstants.LogLabels.STATE_MANAGER,
@@ -157,7 +112,7 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
                 return@read null
             }
             
-            // If multiple versions exist (before deduplication), return the latest by timestamp
+            // Return latest version if duplicates exist
             val latestPair = entityPairs.maxByOrNull { it.first.timestamp }
             val foundDefinition = latestPair?.second
             
@@ -173,19 +128,10 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
         }
     }
     
-    /**
-     * Restore all persisted definitions from disk
-     * @param capacity Maximum number of definitions to return (for LRU cache)
-     * @return List of definitions to load into cache, sorted by most recent first
-     *
-     * Performs deduplication: keeps only latest version of each experienceId
-     * Returns top N most recent definitions for cache, but rebuilds full disk index
-     */
     override fun restoreAll(capacity: Int): List<ExperienceDefinition> {
         return lock.write {
             val queue = dataQueue ?: return@write emptyList()
             
-            // Use scanner to read all entities with their definitions
             val scanner = DataQueueScanner<ExperienceDefinition>(
                 queue = queue,
                 decoder = { entity ->
@@ -214,14 +160,12 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
                 "Scanned ${entityPairs.size} entities from disk"
             )
             
-            // Deduplicate: Group by experienceId and keep only latest (by timestamp)
+            // Deduplicate - keep latest version of each experienceId
             val definitionsByExperienceId = mutableMapOf<String, Pair<DataEntity, ExperienceDefinition>>()
             
             for ((entity, definition) in entityPairs) {
-                // Check if we already have this experienceId
                 val existing = definitionsByExperienceId[definition.experienceId]
                 if (existing != null) {
-                    // Keep the one with latest timestamp (>= to handle collisions)
                     if (entity.timestamp >= existing.first.timestamp) {
                         definitionsByExperienceId[definition.experienceId] = Pair(entity, definition)
                     }
@@ -239,7 +183,6 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
                 )
             }
             
-            // Performance warning: Large definition counts may impact performance
             if (definitionsByExperienceId.size > 500) {
                 Log.warning(
                     ContentAnalyticsConstants.LOG_TAG,
@@ -251,7 +194,6 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
                 )
             }
             
-            // Sort by timestamp (most recent first) and take top N for cache
             val sortedPairs = definitionsByExperienceId.values.sortedByDescending { it.first.timestamp }
             val topN = sortedPairs.take(capacity)
             
@@ -261,14 +203,13 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
                 "Restoring top ${topN.size} of ${definitionsByExperienceId.size} definition(s) to cache"
             )
             
-            // Clear and re-add deduplicated definitions to disk
+            // Rewrite deduplicated definitions
             queue.clear()
-            
             for ((entity, _) in sortedPairs) {
                 queue.add(entity)
             }
             
-            // Rebuild disk index with ALL definitions (not just top N)
+            // Rebuild index
             diskIndex.clear()
             for ((entity, definition) in sortedPairs) {
                 diskIndex[definition.experienceId] = entity.uniqueIdentifier
@@ -280,16 +221,10 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
                 "Restored definitions to disk | Total: ${sortedPairs.size} | Index size: ${diskIndex.size}"
             )
             
-            // Return top N definitions for cache
             return@write topN.map { it.second }
         }
     }
     
-    /**
-     * Check if a definition exists on disk
-     * @param experienceId ID to check
-     * @return true if exists on disk, false otherwise
-     */
     override fun contains(experienceId: String): Boolean {
         return lock.read {
             return@read diskIndex.containsKey(experienceId)
@@ -298,15 +233,9 @@ internal class DefinitionRepository : DefinitionRepositoryProtocol {
     
     // MARK: - Reset
     
-    /**
-     * Clear all persisted definitions and disk index
-     */
     override fun clearAll() {
         lock.write {
-            // Clear disk storage
             dataQueue?.clear()
-            
-            // Clear disk index
             diskIndex.clear()
             
             Log.debug(

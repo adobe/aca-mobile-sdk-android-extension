@@ -37,11 +37,8 @@ internal object ContentAnalyticsConstants {
     
     // Event Names
     object EventNames {
-        // Public API events (dispatched for internal routing)
         const val TRACK_ASSET = "Track Asset"
         const val TRACK_EXPERIENCE = "Track Experience"
-        
-        // Edge Network events (dispatched to Adobe Experience Platform)
         const val CONTENT_ANALYTICS_ASSET = "Content Analytics Asset"
         const val CONTENT_ANALYTICS_EXPERIENCE = "Content Analytics Experience"
     }
@@ -96,15 +93,12 @@ internal object ContentAnalyticsConstants {
         const val EXCLUDED_ASSET_URLS_REGEXP = "contentanalytics.excludedAssetUrlsRegexp"
         const val EXCLUDED_EXPERIENCE_LOCATIONS_REGEXP = "contentanalytics.excludedExperienceLocationsRegexp"
         const val EXPERIENCE_CLOUD_ORG_ID = "contentanalytics.experienceCloudOrgId"
-        const val DATASTREAM_ID = "contentanalytics.configId"  // Datastream ID (aligns with edge.configId naming)
-        const val REGION = "contentanalytics.region"  // Org's home region (e.g., "va7", "irl1", "aus5", "jpn4")
+        const val DATASTREAM_ID = "contentanalytics.configId"
+        const val REGION = "contentanalytics.region"
         
-        // Edge Network keys (published by Edge extension to Configuration shared state)
         const val EDGE_DOMAIN = "edge.domain"
         const val EDGE_CONFIG_ID = "edge.configId"
         const val EDGE_ENVIRONMENT = "edge.environment"
-        
-        // Experience Cloud keys (published to Configuration shared state)
         const val EXPERIENCE_CLOUD_ORG = "experienceCloud.org"
     }
     

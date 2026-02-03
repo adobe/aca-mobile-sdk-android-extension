@@ -130,9 +130,6 @@ internal class FeaturizationHitProcessor(
         }
     }
     
-    /**
-     * Registers experience with featurization service via JAG Gateway
-     */
     private fun registerExperience(
         hit: FeaturizationHit,
         entityId: String,
@@ -167,9 +164,6 @@ internal class FeaturizationHitProcessor(
         }
     }
     
-    /**
-     * Handles check failure - determines if recoverable
-     */
     private fun handleCheckFailure(error: Throwable, hit: FeaturizationHit, entityId: String, completion: (Boolean) -> Unit) {
         when (error) {
             is FeaturizationError.HttpError -> {
@@ -197,9 +191,6 @@ internal class FeaturizationHitProcessor(
         }
     }
     
-    /**
-     * Handles registration failure - determines if recoverable
-     */
     private fun handleRegistrationFailure(error: Throwable, hit: FeaturizationHit, entityId: String, completion: (Boolean) -> Unit) {
         when (error) {
             is FeaturizationError.HttpError -> {

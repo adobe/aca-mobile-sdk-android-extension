@@ -16,16 +16,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-/**
- * Manages ContentAnalytics configuration and validation rules
- *
- * Responsibilities:
- * - Store and update configuration
- * - Validate tracking permissions (URL/location exclusions)
- * - Provide batching configuration
- *
- * Thread-safe: All operations use read-write locks
- */
 internal class ConfigurationManager : ConfigurationManaging {
     
     // MARK: - Private Properties
@@ -36,30 +26,18 @@ internal class ConfigurationManager : ConfigurationManaging {
     
     // MARK: - Configuration Management
     
-    /**
-     * Update configuration (thread-safe)
-     * @param config New configuration to apply
-     */
     override fun updateConfiguration(config: ContentAnalyticsConfiguration) {
         lock.write {
             _configuration = config
         }
     }
     
-    /**
-     * Get current configuration (thread-safe)
-     * @return Current configuration, or null if not yet configured
-     */
     override fun getCurrentConfiguration(): ContentAnalyticsConfiguration? {
         return lock.read {
             _configuration
         }
     }
     
-    /**
-     * Check if batching is enabled
-     * @return true if batching is enabled, false if disabled or no config
-     */
     override val batchingEnabled: Boolean
         get() = lock.read {
             _configuration?.batchingEnabled ?: false
@@ -67,17 +45,7 @@ internal class ConfigurationManager : ConfigurationManaging {
     
     // MARK: - Tracking Validation
     
-    /**
-     * Generic tracking validation - reduces duplication across shouldTrack methods
-     * @param value Value to validate (URL, location string, etc.)
-     * @param validator Validation function that checks the value against config
-     * @return true if tracking is allowed, false if excluded
-     *
-     * Returns true if:
-     * - No configuration exists (default allow)
-     * - Value is null (default allow)
-     * - Validator returns true (not excluded)
-     */
+    // Generic helper to reduce duplication
     private fun <T> shouldTrack(
         value: T?,
         validator: (ContentAnalyticsConfiguration, T) -> Boolean
@@ -87,38 +55,20 @@ internal class ConfigurationManager : ConfigurationManaging {
         return@read validator(config, val_)
     }
     
-    /**
-     * Check if a URL should be tracked (not excluded by patterns)
-     * @param url URL to validate
-     * @return true if tracking is allowed, false if excluded
-     */
     override fun shouldTrackUrl(url: String): Boolean {
         return shouldTrack(url) { config, u -> !config.shouldExcludeUrl(u) }
     }
     
-    /**
-     * Check if an asset location should be tracked (not excluded)
-     * @param location Location to validate
-     * @return true if tracking is allowed, false if excluded
-     */
     override fun shouldTrackAssetLocation(location: String?): Boolean {
         return shouldTrack(location) { config, loc -> !config.shouldExcludeAsset(loc) }
     }
     
-    /**
-     * Check if an experience location should be tracked (not excluded by patterns)
-     * @param location Location to validate
-     * @return true if tracking is allowed, false if excluded or location is null
-     */
     override fun shouldTrackExperience(location: String?): Boolean {
         return shouldTrack(location) { config, loc -> !config.shouldExcludeExperience(loc) }
     }
     
     // MARK: - Reset
     
-    /**
-     * Clear all configuration (for testing or identity reset)
-     */
     override fun reset() {
         lock.write {
             _configuration = null

@@ -15,13 +15,16 @@ package com.adobe.marketing.mobile.contentanalytics
 import com.adobe.marketing.mobile.services.ServiceProvider
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.Assert.*
 import kotlin.system.measureTimeMillis
 
 /**
- * Tests for deduplication, disk index, and smart restore functionality
+ * Tests for deduplication, disk index, and smart restore functionality.
+ * Requires Android ServiceProvider - run as instrumentation tests.
  */
+@Ignore("Requires Android ServiceProvider - run as instrumentation tests")
 class ContentAnalyticsStateManagerDeduplicationTest {
     
     private lateinit var stateManager: ContentAnalyticsStateManager

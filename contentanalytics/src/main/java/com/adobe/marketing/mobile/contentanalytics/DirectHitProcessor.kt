@@ -86,11 +86,6 @@ internal class DirectHitProcessor(
         }
     }
     
-    /**
-     * Process all accumulated events and dispatch via callback.
-     * 
-     * @return The events being processed (for tracking dispatched events)
-     */
     suspend fun processAccumulatedEvents(): List<Event> {
         val eventsToProcess = mutex.withLock {
             if (accumulatedEvents.isEmpty()) {

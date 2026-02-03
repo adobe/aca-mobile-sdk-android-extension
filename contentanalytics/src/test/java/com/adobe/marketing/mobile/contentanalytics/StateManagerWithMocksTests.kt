@@ -97,7 +97,7 @@ class StateManagerWithMocksTests {
         // Then
         assertNotNull(result)
         assertEquals("exp1", result?.experienceId)
-        assertEquals(1, mockCache.getCallCount)
+        assertEquals(2, mockCache.getCallCount) // Called twice: read lock check + write lock double-check
         assertEquals(1, mockRepository.loadCallCount) // Repository called
         assertEquals(1, mockCache.storedDefinitions.size) // Restored to cache
     }
@@ -218,7 +218,7 @@ class StateManagerWithMocksTests {
 // MARK: - Mock Implementations
 
 /** Mock cache that tracks all calls and stores definitions in memory */
-class MockDefinitionCache : DefinitionCacheProtocol {
+internal class MockDefinitionCache : DefinitionCacheProtocol {
     val definitions = mutableMapOf<String, ExperienceDefinition>()
     val storedDefinitions = mutableListOf<ExperienceDefinition>()
     
@@ -277,7 +277,7 @@ class MockDefinitionCache : DefinitionCacheProtocol {
 }
 
 /** Mock repository that tracks all calls and stores definitions in memory */
-class MockDefinitionRepository : DefinitionRepositoryProtocol {
+internal class MockDefinitionRepository : DefinitionRepositoryProtocol {
     val persistedDefinitions = mutableMapOf<String, ExperienceDefinition>()
     val savedDefinitions = mutableListOf<ExperienceDefinition>()
     
@@ -316,7 +316,7 @@ class MockDefinitionRepository : DefinitionRepositoryProtocol {
 }
 
 /** Mock configuration manager that tracks all calls */
-class MockConfigurationManager : ConfigurationManaging {
+internal class MockConfigurationManager : ConfigurationManaging {
     var config: ContentAnalyticsConfiguration? = null
     var batchingEnabledValue = false
     var urlTrackingResult = true

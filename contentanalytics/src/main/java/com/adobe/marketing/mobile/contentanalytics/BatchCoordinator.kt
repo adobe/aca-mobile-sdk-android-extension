@@ -25,10 +25,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Coordinates event batching, disk persistence, and flush triggers.
- * Manages counters and timers to determine when to dispatch accumulated events.
- */
 internal class BatchCoordinator(
     assetDataQueue: DataQueue,
     experienceDataQueue: DataQueue,
