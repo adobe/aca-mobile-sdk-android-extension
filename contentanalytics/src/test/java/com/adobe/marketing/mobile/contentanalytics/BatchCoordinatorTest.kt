@@ -29,7 +29,7 @@ class BatchCoordinatorTest {
         // Assert
         assertTrue("Batching should be enabled by default", config.batchingEnabled)
         assertEquals("Default batch size should be 5", 
-            ContentAnalyticsConstants.Defaults.MAX_BATCH_SIZE, config.maxBatchSize)
+            ContentAnalyticsConstants.Defaults.DEFAULT_BATCH_SIZE, config.maxBatchSize)
         assertEquals("Default flush interval should be 5000ms",
             ContentAnalyticsConstants.Defaults.BATCH_FLUSH_INTERVAL, config.batchFlushInterval)
     }
@@ -79,7 +79,7 @@ class BatchCoordinatorTest {
     fun testMaxBatchSize_EnforcesMinimum() {
         // Arrange - Even if set to invalid value, should use default
         val config = ContentAnalyticsConfiguration(
-            maxBatchSize = ContentAnalyticsConstants.Defaults.MAX_BATCH_SIZE
+            maxBatchSize = ContentAnalyticsConstants.Defaults.DEFAULT_BATCH_SIZE
         )
         
         // Assert

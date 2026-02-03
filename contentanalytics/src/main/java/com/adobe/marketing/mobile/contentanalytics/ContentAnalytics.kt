@@ -39,10 +39,6 @@ object ContentAnalytics {
     @JvmField
     val EXTENSION: Class<out com.adobe.marketing.mobile.Extension> = ContentAnalyticsExtension::class.java
     
-    /**
-     * @param assetLocation Location context (e.g., "homepage", "pdp")
-     * @param additionalData Custom metadata for this interaction
-     */
     @JvmStatic
     @JvmOverloads
     fun trackAsset(

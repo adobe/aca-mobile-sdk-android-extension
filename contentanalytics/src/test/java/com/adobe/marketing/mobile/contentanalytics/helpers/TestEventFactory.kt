@@ -109,7 +109,7 @@ object TestEventFactory {
     fun createConfigurationEvent(
         trackExperiences: Boolean = true,
         batchingEnabled: Boolean = false,
-        maxBatchSize: Int = ContentAnalyticsConstants.Defaults.MAX_BATCH_SIZE,
+        maxBatchSize: Int = ContentAnalyticsConstants.Defaults.DEFAULT_BATCH_SIZE,
         batchFlushInterval: Long = ContentAnalyticsConstants.Defaults.BATCH_FLUSH_INTERVAL,
         excludedAssetLocationsRegexp: String? = null,
         excludedAssetUrlsRegexp: String? = null,

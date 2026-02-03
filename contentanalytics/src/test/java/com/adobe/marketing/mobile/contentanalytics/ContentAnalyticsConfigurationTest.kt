@@ -28,7 +28,7 @@ class ContentAnalyticsConfigurationTest {
         // Assert
         assertTrue("Track experiences should be true by default", config.trackExperiences)
         assertTrue("Batching should be enabled by default", config.batchingEnabled)
-        assertEquals(ContentAnalyticsConstants.Defaults.MAX_BATCH_SIZE, config.maxBatchSize)
+        assertEquals(ContentAnalyticsConstants.Defaults.DEFAULT_BATCH_SIZE, config.maxBatchSize)
         assertEquals(ContentAnalyticsConstants.Defaults.BATCH_FLUSH_INTERVAL, config.batchFlushInterval)
         assertNull("Excluded asset locations regexp should be null", config.excludedAssetLocationsRegexp)
         assertNull("Excluded asset URLs regexp should be null", config.excludedAssetUrlsRegexp)

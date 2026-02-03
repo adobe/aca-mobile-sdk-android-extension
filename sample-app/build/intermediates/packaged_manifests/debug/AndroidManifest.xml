@@ -24,6 +24,7 @@
         android:debuggable="true"
         android:extractNativeLibs="true"
         android:label="Content Analytics Sample"
+        android:testOnly="true"
         android:theme="@android:style/Theme.Material.Light" >
         <activity
             android:name="com.adobe.marketing.mobile.contentanalytics.sample.MainActivity"

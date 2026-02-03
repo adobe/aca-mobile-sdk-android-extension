@@ -84,10 +84,6 @@ internal class ContentAnalyticsFactory(
         return batchCoordinator
     }
     
-    /**
-     * Get the privacy validator instance (for cache updates)
-     * Returns the cached instance or creates a new one if needed (defensive)
-     */
     fun getPrivacyValidator(): ContentAnalyticsPrivacyValidator {
         if (privacyValidator == null) {
             Log.warning(TAG, TAG, "Privacy validator accessed before initialization - creating new instance")
@@ -187,7 +183,6 @@ internal class ContentAnalyticsFactory(
             return null
         }
         
-        // Get featurization base URL (JAG Gateway routing via Edge domain + region)
         val serviceUrl = config.getFeaturizationBaseUrl()
         if (serviceUrl == null) {
             Log.warning(TAG, TAG, "❌ Cannot determine featurization URL - Edge domain not configured")
@@ -209,7 +204,7 @@ internal class ContentAnalyticsFactory(
         val hitQueue = PersistentHitQueue(dataQueue, hitProcessor)
         hitQueue.beginProcessing()
         
-        Log.debug(TAG, TAG, "✅ Featurization hit queue created via JAG Gateway")
+        Log.debug(TAG, TAG, "✅ Featurization hit queue created")
         
         return hitQueue
     }

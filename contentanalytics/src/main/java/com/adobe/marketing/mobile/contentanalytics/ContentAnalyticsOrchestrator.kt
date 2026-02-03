@@ -18,11 +18,6 @@ import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.services.Log
 import java.util.Date
 
-/**
- * Orchestrates content analytics event processing, batching, and delivery.
- * 
- * Coordinates between event validation, filtering, batching, and Edge Network dispatch.
- */
 internal class ContentAnalyticsOrchestrator(
     private val state: ContentAnalyticsStateManager,
     private val eventDispatcher: EventDispatcher,
@@ -36,23 +31,12 @@ internal class ContentAnalyticsOrchestrator(
         private const val TAG = ContentAnalyticsConstants.LOG_TAG
     }
     
-    /**
-     * Check if featurization queue is already initialized.
-     * Used by extension to avoid recreating the queue on every config change.
-     */
     fun hasFeaturizationQueue(): Boolean = featurizationCoordinator.hasQueue
     
-    /**
-     * Initializes the featurization hit queue if not already created (lazy initialization).
-     * Delegates to FeaturizationCoordinator which handles thread safety.
-     */
     fun initializeFeaturizationQueueIfNeeded(queue: PersistentHitQueue?) {
         featurizationCoordinator.initializeQueue(queue)
     }
     
-    /**
-     * Process an asset tracking event.
-     */
     fun processAssetEvent(event: Event) {
         // Validate required fields
         val assetURL = event.assetURL
@@ -145,7 +129,6 @@ internal class ContentAnalyticsOrchestrator(
             return
         }
         
-        // Execute any pre-processing (e.g., store experience definition)
         preProcessing?.invoke(event)
         
         // Check if batching is enabled (and batch coordinator exists)
@@ -214,9 +197,6 @@ internal class ContentAnalyticsOrchestrator(
         batchCoordinator?.updateConfiguration(config)
     }
     
-    /**
-     * Clear all pending batched events (e.g., on consent denial)
-     */
     fun clearPendingBatch() {
         Log.debug(TAG, TAG, "Clearing pending batch")
         batchCoordinator?.clearPendingBatch()

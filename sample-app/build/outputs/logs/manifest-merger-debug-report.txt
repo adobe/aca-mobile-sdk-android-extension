@@ -1,11 +1,11 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:2:1-31:12
-INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:2:1-31:12
-INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:2:1-31:12
-INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:2:1-31:12
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:2:1-31:12
+INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:2:1-31:12
+INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:2:1-31:12
+INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:2:1-31:12
 MERGED from [androidx.compose.material3:material3:1.1.2] /Users/prazvan/.gradle/caches/transforms-3/4d2b6e28469bddd8693cb6a2273d0c78/transformed/jetified-material3-1.1.2/AndroidManifest.xml:17:1-22:12
-MERGED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:13:1-32:12
+MERGED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:13:1-32:12
 MERGED from [com.adobe.marketing.mobile:edge:3.0.2] /Users/prazvan/.gradle/caches/transforms-3/20a0b63badafc29e8cc837cb47f52de0/transformed/jetified-edge-3.0.2/AndroidManifest.xml:13:1-28:12
 MERGED from [com.adobe.marketing.mobile:assurance:3.0.7] /Users/prazvan/.gradle/caches/transforms-3/a4133113fbdab5c185cb6f4408e5ee94/transformed/jetified-assurance-3.0.7/AndroidManifest.xml:13:1-33:12
 MERGED from [com.adobe.marketing.mobile:edgeidentity:3.0.1] /Users/prazvan/.gradle/caches/transforms-3/00913f25a433fa840c1b94800105162b/transformed/jetified-edgeidentity-3.0.1/AndroidManifest.xml:13:1-28:12
@@ -76,26 +76,26 @@ MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/prazvan/.gradle/ca
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/prazvan/.gradle/caches/transforms-3/8c1c0a070fe8281b6e0f4bdcd93f3d80/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
 MERGED from [androidx.tracing:tracing:1.0.0] /Users/prazvan/.gradle/caches/transforms-3/bced61b7bdf05b830a1ad3cf478243de/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:17:1-24:12
 	package
-		INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
+		INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
 	android:versionName
-		INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
+		INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
 	android:versionCode
-		INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
+		INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
 	xmlns:android
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:2:11-69
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:2:11-69
 uses-permission#android.permission.INTERNET
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:4:5-67
-MERGED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:18:5-67
-MERGED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:18:5-67
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:4:5-67
+MERGED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:18:5-67
+MERGED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:18:5-67
 MERGED from [com.adobe.marketing.mobile:core:3.5.0] /Users/prazvan/.gradle/caches/transforms-3/52c9f5cbc35a84636b453766de3d2b86/transformed/jetified-core-3.5.0/AndroidManifest.xml:19:5-67
 MERGED from [com.adobe.marketing.mobile:core:3.5.0] /Users/prazvan/.gradle/caches/transforms-3/52c9f5cbc35a84636b453766de3d2b86/transformed/jetified-core-3.5.0/AndroidManifest.xml:19:5-67
 	android:name
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:4:22-64
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:4:22-64
 application
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:6:5-30:19
-INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:6:5-30:19
-MERGED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:20:5-30:19
-MERGED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:20:5-30:19
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:6:5-30:19
+INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:6:5-30:19
+MERGED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:20:5-30:19
+MERGED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:20:5-30:19
 MERGED from [com.adobe.marketing.mobile:edge:3.0.2] /Users/prazvan/.gradle/caches/transforms-3/20a0b63badafc29e8cc837cb47f52de0/transformed/jetified-edge-3.0.2/AndroidManifest.xml:18:5-26:19
 MERGED from [com.adobe.marketing.mobile:edge:3.0.2] /Users/prazvan/.gradle/caches/transforms-3/20a0b63badafc29e8cc837cb47f52de0/transformed/jetified-edge-3.0.2/AndroidManifest.xml:18:5-26:19
 MERGED from [com.adobe.marketing.mobile:assurance:3.0.7] /Users/prazvan/.gradle/caches/transforms-3/a4133113fbdab5c185cb6f4408e5ee94/transformed/jetified-assurance-3.0.7/AndroidManifest.xml:18:5-31:19
@@ -117,63 +117,63 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/prazvan/.gradle/cach
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/prazvan/.gradle/caches/transforms-3/8c1c0a070fe8281b6e0f4bdcd93f3d80/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/prazvan/.gradle/caches/transforms-3/8c1c0a070fe8281b6e0f4bdcd93f3d80/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 	android:extractNativeLibs
-		INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
+		INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.10.0] /Users/prazvan/.gradle/caches/transforms-3/c2b98d1fcc0e8dc6a672c628a3876fa2/transformed/core-1.10.0/AndroidManifest.xml:28:18-86
 	android:label
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:9:9-49
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:9:9-49
 	android:allowBackup
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:8:9-35
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:8:9-35
 	android:theme
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:10:9-60
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:10:9-60
 	android:name
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:7:9-42
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:7:9-42
 activity#com.adobe.marketing.mobile.contentanalytics.sample.MainActivity
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:12:9-29:20
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:12:9-29:20
 	android:launchMode
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:16:13-43
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:16:13-43
 	android:exported
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:14:13-36
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:14:13-36
 	android:theme
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:15:13-57
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:15:13-57
 	android:name
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:13:13-41
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:13:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:17:13-20:29
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:17:13-20:29
 action#android.intent.action.MAIN
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:18:17-69
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:18:17-69
 	android:name
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:18:25-66
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:18:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:19:17-77
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:19:17-77
 	android:name
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:19:27-74
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:19:27-74
 intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:scheme:aep
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:23:13-28:29
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:23:13-28:29
 action#android.intent.action.VIEW
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:24:17-69
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:24:17-69
 	android:name
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:24:25-66
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:24:25-66
 category#android.intent.category.DEFAULT
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:25:17-76
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:25:17-76
 	android:name
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:25:27-73
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:25:27-73
 category#android.intent.category.BROWSABLE
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:26:17-78
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:26:17-78
 	android:name
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:26:27-75
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:26:27-75
 data
-ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:27:17-46
+ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:27:17-46
 	android:scheme
-		ADDED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:27:23-43
+		ADDED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml:27:23-43
 uses-sdk
-INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
-INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
+INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
+INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
 MERGED from [androidx.compose.material3:material3:1.1.2] /Users/prazvan/.gradle/caches/transforms-3/4d2b6e28469bddd8693cb6a2273d0c78/transformed/jetified-material3-1.1.2/AndroidManifest.xml:20:5-44
 MERGED from [androidx.compose.material3:material3:1.1.2] /Users/prazvan/.gradle/caches/transforms-3/4d2b6e28469bddd8693cb6a2273d0c78/transformed/jetified-material3-1.1.2/AndroidManifest.xml:20:5-44
-MERGED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:16:5-44
-MERGED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:16:5-44
+MERGED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:16:5-44
+MERGED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:16:5-44
 MERGED from [com.adobe.marketing.mobile:edge:3.0.2] /Users/prazvan/.gradle/caches/transforms-3/20a0b63badafc29e8cc837cb47f52de0/transformed/jetified-edge-3.0.2/AndroidManifest.xml:16:5-44
 MERGED from [com.adobe.marketing.mobile:edge:3.0.2] /Users/prazvan/.gradle/caches/transforms-3/20a0b63badafc29e8cc837cb47f52de0/transformed/jetified-edge-3.0.2/AndroidManifest.xml:16:5-44
 MERGED from [com.adobe.marketing.mobile:assurance:3.0.7] /Users/prazvan/.gradle/caches/transforms-3/a4133113fbdab5c185cb6f4408e5ee94/transformed/jetified-assurance-3.0.7/AndroidManifest.xml:16:5-44
@@ -313,11 +313,11 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/praz
 MERGED from [androidx.tracing:tracing:1.0.0] /Users/prazvan/.gradle/caches/transforms-3/bced61b7bdf05b830a1ad3cf478243de/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.tracing:tracing:1.0.0] /Users/prazvan/.gradle/caches/transforms-3/bced61b7bdf05b830a1ad3cf478243de/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:20:5-22:41
 	android:targetSdkVersion
-		INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
+		INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from /Users/prazvan/work/aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
+		INJECTED from /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/sample-app/src/main/AndroidManifest.xml
 service#com.adobe.marketing.mobile.ExtensionDiscoveryService
-ADDED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:23:9-29:19
+ADDED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:23:9-29:19
 MERGED from [com.adobe.marketing.mobile:edge:3.0.2] /Users/prazvan/.gradle/caches/transforms-3/20a0b63badafc29e8cc837cb47f52de0/transformed/jetified-edge-3.0.2/AndroidManifest.xml:19:9-25:19
 MERGED from [com.adobe.marketing.mobile:edge:3.0.2] /Users/prazvan/.gradle/caches/transforms-3/20a0b63badafc29e8cc837cb47f52de0/transformed/jetified-edge-3.0.2/AndroidManifest.xml:19:9-25:19
 MERGED from [com.adobe.marketing.mobile:assurance:3.0.7] /Users/prazvan/.gradle/caches/transforms-3/a4133113fbdab5c185cb6f4408e5ee94/transformed/jetified-assurance-3.0.7/AndroidManifest.xml:24:9-30:19
@@ -327,15 +327,15 @@ MERGED from [com.adobe.marketing.mobile:edgeidentity:3.0.1] /Users/prazvan/.grad
 MERGED from [com.adobe.marketing.mobile:core:3.5.0] /Users/prazvan/.gradle/caches/transforms-3/52c9f5cbc35a84636b453766de3d2b86/transformed/jetified-core-3.5.0/AndroidManifest.xml:22:9-28:19
 MERGED from [com.adobe.marketing.mobile:core:3.5.0] /Users/prazvan/.gradle/caches/transforms-3/52c9f5cbc35a84636b453766de3d2b86/transformed/jetified-core-3.5.0/AndroidManifest.xml:22:9-28:19
 	android:exported
-		ADDED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:25:13-37
+		ADDED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:25:13-37
 	android:name
-		ADDED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:24:13-80
+		ADDED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:24:13-80
 meta-data#com.adobe.marketing.mobile.contentanalytics.ContentAnalyticsExtension
-ADDED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:26:13-28:45
+ADDED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:26:13-28:45
 	android:value
-		ADDED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:28:17-42
+		ADDED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:28:17-42
 	android:name
-		ADDED from [:contentanalytics] /Users/prazvan/work/aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:27:17-101
+		ADDED from [:contentanalytics] /Users/prazvan/work/opensource/mobile/aca-mobile-aca-mobile-sdk-android-extension/contentanalytics/build/intermediates/merged_manifest/phoneDebug/AndroidManifest.xml:27:17-101
 meta-data#com.adobe.marketing.mobile.EdgeExtension
 ADDED from [com.adobe.marketing.mobile:edge:3.0.2] /Users/prazvan/.gradle/caches/transforms-3/20a0b63badafc29e8cc837cb47f52de0/transformed/jetified-edge-3.0.2/AndroidManifest.xml:22:13-24:45
 	android:value

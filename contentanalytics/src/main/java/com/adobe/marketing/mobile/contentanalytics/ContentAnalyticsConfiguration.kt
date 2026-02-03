@@ -27,7 +27,7 @@ internal data class ContentAnalyticsConfiguration(
     val datastreamId: String? = null,
     val edgeEnvironment: String? = null,
     val edgeDomain: String? = null,
-    val region: String? = null,  // Org's home region (e.g., "va7", "irl1", "aus5", "jpn4") - for custom domains
+    val region: String? = null,
     
     val featurizationMaxRetries: Int = ContentAnalyticsConstants.Defaults.FEATURIZATION_MAX_RETRIES,
     val featurizationRetryDelay: Long = ContentAnalyticsConstants.Defaults.FEATURIZATION_RETRY_DELAY,
@@ -81,21 +81,7 @@ internal data class ContentAnalyticsConfiguration(
         }
     }
     
-    /**
-     * Get the effective base URL for featurization service with JAG Gateway routing
-     * Returns the base URL to use for featurization requests, including region.
-     * 
-     * JAG Gateway URL format: https://{edgeDomain}/aca/{region}
-     * 
-     * Region priority:
-     * 1. Explicit contentanalytics.region configuration (for custom domains)
-     * 2. Parse from edge.domain (for standard Adobe domains)
-     * 3. Default to "va7" (US Virginia)
-     * 
-     * @return The base URL string, or null if not configured
-     */
     fun getFeaturizationBaseUrl(): String? {
-        // Use Edge domain with /aca/{region} path (JAG Gateway routing)
         if (edgeDomain.isNullOrEmpty()) {
             Log.debug(
                 ContentAnalyticsConstants.LOG_TAG,
@@ -105,9 +91,6 @@ internal data class ContentAnalyticsConfiguration(
             return null
         }
         
-        // Priority 1: Explicit region configuration (for custom domains)
-        // Priority 2: Parse from edge.domain (for standard domains)
-        // Priority 3: Default to US
         val resolvedRegion = region ?: extractRegion(edgeDomain)
         
         val source = when {
@@ -129,41 +112,22 @@ internal data class ContentAnalyticsConfiguration(
         return "$trimmedUrl/aca/$resolvedRegion"
     }
     
-    /**
-     * Extract region from Edge domain
-     * 
-     * @param domain The Edge Network domain (e.g., "edge.adobedc.net", "edge-eu.adobedc.net")
-     * @return The region code (e.g., "va7" for US, "irl1" for EU, "aus5" for Australia)
-     * 
-     * Region mapping:
-     * - Default (no region in domain) → "va7" (US Virginia)
-     * - "edge-eu.adobedc.net" → "irl1" (EU Ireland)
-     * - "edge-au.adobedc.net" → "aus5" (Australia)
-     * - "edge-jp.adobedc.net" → "jpn4" (Japan)
-     */
-    /**
-     * Extract region from Edge domain (using Adobe Edge Network region codes)
-     * Reference: https://experienceleague.adobe.com/en/docs/experience-platform/landing/edge-and-hub-comparison
-     */
     private fun extractRegion(domain: String): String {
         val lowercasedDomain = domain.lowercase()
         
         return when {
-            lowercasedDomain.contains("edge-eu") || lowercasedDomain.contains("irl1") -> "irl1"  // Ireland (Europe)
-            lowercasedDomain.contains("edge-au") || lowercasedDomain.contains("aus3") -> "aus3"  // Australia
-            lowercasedDomain.contains("edge-jp") || lowercasedDomain.contains("jpn3") -> "jpn3"  // Japan
-            lowercasedDomain.contains("edge-in") || lowercasedDomain.contains("ind1") -> "ind1"  // India
-            lowercasedDomain.contains("edge-sg") || lowercasedDomain.contains("sgp3") -> "sgp3"  // Singapore
-            lowercasedDomain.contains("or2") -> "or2"   // Oregon (US West)
-            lowercasedDomain.contains("va6") -> "va6"   // Virginia (US East, Edge)
-            else -> "va7"  // Default: Virginia (US East, Platform Hub)
+            lowercasedDomain.contains("edge-eu") || lowercasedDomain.contains("irl1") -> "irl1"
+            lowercasedDomain.contains("edge-au") || lowercasedDomain.contains("aus3") -> "aus3"
+            lowercasedDomain.contains("edge-jp") || lowercasedDomain.contains("jpn3") -> "jpn3"
+            lowercasedDomain.contains("edge-in") || lowercasedDomain.contains("ind1") -> "ind1"
+            lowercasedDomain.contains("edge-sg") || lowercasedDomain.contains("sgp3") -> "sgp3"
+            lowercasedDomain.contains("or2") -> "or2"
+            lowercasedDomain.contains("va6") -> "va6"
+            else -> "va7"
         }
     }
     
     companion object {
-        /**
-         * Parse configuration from event data
-         */
         fun fromEventData(data: Map<String, Any?>): ContentAnalyticsConfiguration {
             return ContentAnalyticsConfiguration(
                 trackExperiences = data[ContentAnalyticsConstants.ConfigurationKeys.TRACK_EXPERIENCES] as? Boolean
@@ -173,11 +137,8 @@ internal data class ContentAnalyticsConfiguration(
                 excludedAssetUrlsRegexp = data[ContentAnalyticsConstants.ConfigurationKeys.EXCLUDED_ASSET_URLS_REGEXP] as? String,
                 excludedExperienceLocationsRegexp = data[ContentAnalyticsConstants.ConfigurationKeys.EXCLUDED_EXPERIENCE_LOCATIONS_REGEXP] as? String,
                 
-                // Read from both contentanalytics-prefixed keys and standard keys (for compatibility)
-                // Try contentanalytics.* first, fallback to standard keys from Configuration shared state
                 experienceCloudOrgId = (data[ContentAnalyticsConstants.ConfigurationKeys.EXPERIENCE_CLOUD_ORG_ID] 
                     ?: data[ContentAnalyticsConstants.ConfigurationKeys.EXPERIENCE_CLOUD_ORG]) as? String,
-                // Use contentanalytics.configId for the datastream (aligns with edge.configId naming)
                 datastreamId = data[ContentAnalyticsConstants.ConfigurationKeys.DATASTREAM_ID] as? String,
                 edgeEnvironment = data[ContentAnalyticsConstants.ConfigurationKeys.EDGE_ENVIRONMENT] as? String,
                 edgeDomain = data[ContentAnalyticsConstants.ConfigurationKeys.EDGE_DOMAIN] as? String,

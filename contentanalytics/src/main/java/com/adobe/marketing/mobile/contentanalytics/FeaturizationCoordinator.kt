@@ -17,9 +17,6 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.DataReader
 import java.util.*
 
-/**
- * Manages featurization requests for experience definitions
- */
 internal class FeaturizationCoordinator(
     private val state: ContentAnalyticsStateManager,
     private val privacyValidator: PrivacyValidator

@@ -91,9 +91,6 @@ val Event.experienceExtras: Map<String, Any>?
     get() = eventData?.get(ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_EXTRAS) as? Map<String, Any>
 
 
-/**
- * Generate a unique key for asset events (for batching by location)
- */
 val Event.assetKey: String?
     get() {
         val url = assetURL ?: return null
@@ -101,9 +98,6 @@ val Event.assetKey: String?
         return "$url|$location"
     }
 
-/**
- * Generate a unique key for experience events (for batching by location)
- */
 val Event.experienceKey: String?
     get() {
         val id = experienceId ?: return null

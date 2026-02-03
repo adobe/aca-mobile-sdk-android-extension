@@ -17,18 +17,9 @@ import com.adobe.marketing.mobile.services.DataQueue
 import com.adobe.marketing.mobile.services.Log
 
 /**
- * Utility for scanning DataQueue to find and extract items
+ * Scans DataQueue for items matching predicates
  * 
- * DataQueue is FIFO (First-In-First-Out) with no random access.
- * This utility provides common scanning patterns with proper queue state restoration.
- *
- * IMPORTANT: All scan operations read the entire queue, then restore it.
- * This is required because DataQueue only supports sequential access via peek()/remove().
- *
- * @param T The type of items to decode from the queue
- * @param queue The DataQueue to scan
- * @param decoder Function to decode a DataEntity into an item of type T
- * @param label Log label for error/debug messages
+ * DataQueue is FIFO with no random access, so we read everything then restore the queue.
  */
 internal class DataQueueScanner<T>(
     private val queue: DataQueue,
@@ -36,28 +27,13 @@ internal class DataQueueScanner<T>(
     private val label: String = "DataQueueScanner"
 ) {
     
-    /**
-     * Result of a scan operation
-     */
     data class ScanResult<T>(
-        /** All successfully decoded items found in the queue */
         val items: List<T>,
-        
-        /** All entities that were read (for re-adding to queue) */
         val entities: List<DataEntity>,
-        
-        /** Number of entities that were read */
         val entitiesScanned: Int,
-        
-        /** Number of entities that failed to decode */
         val failedDecodeCount: Int
     )
     
-    /**
-     * Scan entire queue and decode all items
-     * @param predicate Optional filter to apply to decoded items (default: return all)
-     * @return ScanResult containing all matching items and entities
-     */
     fun scanAll(predicate: (T) -> Boolean = { true }): ScanResult<T> {
         val entities = mutableListOf<DataEntity>()
         val items = mutableListOf<T>()
@@ -108,11 +84,6 @@ internal class DataQueueScanner<T>(
         )
     }
     
-    /**
-     * Scan queue to find first item matching predicate
-     * @param predicate Condition to match
-     * @return First matching item, or null if not found
-     */
     fun findFirst(predicate: (T) -> Boolean): T? {
         val entities = mutableListOf<DataEntity>()
         var foundItem: T? = null
@@ -154,12 +125,6 @@ internal class DataQueueScanner<T>(
         return foundItem
     }
     
-    /**
-     * Scan queue and return items with their original entities
-     * Useful when you need both the decoded item and the entity (e.g., for deduplication by timestamp)
-     * @param predicate Optional filter to apply (default: return all)
-     * @return List of pairs (entity, decoded item)
-     */
     fun scanWithEntities(predicate: (T) -> Boolean = { true }): List<Pair<DataEntity, T>> {
         val entities = mutableListOf<DataEntity>()
         val results = mutableListOf<Pair<DataEntity, T>>()
