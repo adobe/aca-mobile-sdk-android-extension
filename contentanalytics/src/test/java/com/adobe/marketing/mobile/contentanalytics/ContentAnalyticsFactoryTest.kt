@@ -52,7 +52,7 @@ class ContentAnalyticsFactoryTest {
         val factory = ContentAnalyticsFactory(api, state)
         
         // Then - Should create valid instance
-        assertNotNull("Factory should be created successfully", factory)
+        assertNotNull("Factory created", factory)
     }
     
     // MARK: - Orchestrator Creation Tests
@@ -160,8 +160,7 @@ class ContentAnalyticsFactoryTest {
         assertNotNull("Orchestrator should be created with XDM event builder", orchestrator)
     }
     
-    // MARK: - Batch Coordinator Tests
-    // Note: Batch coordinator is an internal implementation detail and not exposed via factory
+    // MARK: - Batch Coordinator Tests (internal, not exposed via factory)
     
     // MARK: - Privacy Validator Tests
     
@@ -219,7 +218,6 @@ class ContentAnalyticsFactoryTest {
     }
     
     // MARK: - Configuration Tests
-    // Note: Detailed batching behavior is tested in BatchCoordinatorTest and BatchCoordinatorIntegrationTest
     
     @Test
     fun `orchestrator with batching disabled sends events immediately`() {
@@ -283,8 +281,7 @@ class ContentAnalyticsFactoryTest {
         assertEquals("Configuration should have correct batch size", 10, appliedConfig?.maxBatchSize)
         assertEquals("Configuration should have correct flush interval", 5000L, appliedConfig?.batchFlushInterval)
         
-        // Note: Actual batching behavior (buffering, flush triggers) is tested in:
-        // - BatchCoordinatorTest: Unit tests for batch coordinator
+        // See BatchCoordinatorTest for batching behavior
         // - BatchCoordinatorIntegrationTest: Integration tests with real persistence
         // - ContentAnalyticsOrchestratorTest: Orchestrator respecting batching config
     }

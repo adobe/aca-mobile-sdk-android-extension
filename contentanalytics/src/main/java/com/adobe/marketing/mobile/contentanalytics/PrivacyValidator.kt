@@ -27,14 +27,15 @@ internal interface PrivacyValidator {
 }
 
 /**
- * Privacy validator implementation using state and consent checking with caching optimization
+ * Privacy validator that checks consent state before data collection.
  * 
- * Matches iOS StatePrivacyValidator functionality:
- * 1. Checks Hub shared state (SDK initialization)
- * 2. Checks Consent extension registration
- * 3. Checks consent collect preference
- * 4. Falls back to allowing if Consent not registered
- * 5. Caches shared states to avoid repeated fetches (performance optimization)
+ * Validation flow:
+ * 1. Check Hub shared state (SDK initialization)
+ * 2. Check Consent extension registration
+ * 3. Check consent collect preference
+ * 4. Fall back to allowing if Consent not registered
+ * 
+ * Caches shared states to avoid repeated fetches.
  */
 internal class ContentAnalyticsPrivacyValidator(
     private val state: ContentAnalyticsStateManager,

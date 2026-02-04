@@ -66,8 +66,7 @@ class ContentAnalyticsOrchestratorTest {
         verify(batchCoordinator).addAssetEvent(event)
     }
     
-    // Note: Privacy consent is checked by Edge extension, not by Content Analytics
-    // This matches iOS behavior and standard Adobe SDK architecture
+    // Privacy consent is checked by Edge extension, not by this extension
     
     @Test
     fun `test processAssetEvent filtered by URL pattern`() {
@@ -162,9 +161,9 @@ class ContentAnalyticsOrchestratorTest {
     }
     
     @Test
-    fun `test flushPendingEvents delegates to BatchCoordinator`() {
+    fun `test flush delegates to BatchCoordinator`() {
         // When
-        orchestrator.flushPendingEvents()
+        orchestrator.flush()
         
         // Then
         verify(batchCoordinator).flush()

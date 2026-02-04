@@ -44,8 +44,7 @@ internal class BatchCoordinator(
     private var experienceEventCount: Int = 0
     private var firstTrackingTime: Date? = null
     
-    @Volatile
-    private var batchTimer: Handler? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
     @Volatile
     private var flushRunnable: Runnable? = null
     
@@ -107,7 +106,7 @@ internal class BatchCoordinator(
         }
         
         // Update timer if interval changed
-        if (newConfig.batchFlushInterval != oldConfig.batchFlushInterval && batchTimer != null) {
+        if (newConfig.batchFlushInterval != oldConfig.batchFlushInterval && flushRunnable != null) {
             Log.debug(TAG, TAG, "Flush interval changed from ${oldConfig.batchFlushInterval}ms to ${newConfig.batchFlushInterval}ms - rescheduling")
             cancelBatchTimer()
             if (newConfig.batchingEnabled) {
@@ -220,21 +219,9 @@ internal class BatchCoordinator(
             cancelBatchTimer()
         }
         
-        // Mark as dispatched after sending to orchestrator
-        if (assetEvents.isNotEmpty()) {
-            assetHitProcessor.markEventsAsDispatched(assetEvents)
-        }
-        if (experienceEvents.isNotEmpty()) {
-            experienceHitProcessor.markEventsAsDispatched(experienceEvents)
-        }
+        // Disk is cleared during processHit() - Edge guarantees delivery from here
     }
     
-    /**
-     * Flush pending events immediately (called on background or app close).
-     */
-    fun flushPendingEvents() {
-        flush()
-    }
     
     /**
      * Clear all pending batches and reset state.
@@ -316,28 +303,25 @@ internal class BatchCoordinator(
     
     
     private fun scheduleBatchFlush(intervalMs: Long) {
-        Handler(Looper.getMainLooper()).post {
+        mainHandler.post {
             cancelBatchTimer()
             
-            val handler = Handler(Looper.getMainLooper())
             val runnable = Runnable {
                 Log.debug(TAG, TAG, "Batch timer triggered, flushing")
                 flush()
             }
             
-            handler.postDelayed(runnable, intervalMs)
-            
-            batchTimer = handler
+            mainHandler.postDelayed(runnable, intervalMs)
             flushRunnable = runnable
             
             Log.trace(TAG, TAG, "Batch timer scheduled | Interval: ${intervalMs}ms")
         }
     }
+    
     private fun cancelBatchTimer() {
         flushRunnable?.let { runnable ->
-            batchTimer?.removeCallbacks(runnable)
+            mainHandler.removeCallbacks(runnable)
         }
-        batchTimer = null
         flushRunnable = null
     }
 }

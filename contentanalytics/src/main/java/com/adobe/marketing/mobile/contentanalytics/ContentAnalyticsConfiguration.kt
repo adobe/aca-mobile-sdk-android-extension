@@ -73,7 +73,8 @@ internal data class ContentAnalyticsConfiguration(
         return try {
             Pattern.compile(pattern, Pattern.CASE_INSENSITIVE)
         } catch (e: PatternSyntaxException) {
-            android.util.Log.w(
+            Log.warning(
+                ContentAnalyticsConstants.LOG_TAG,
                 ContentAnalyticsConstants.LOG_TAG,
                 "Invalid regex pattern: $pattern - ${e.message}"
             )

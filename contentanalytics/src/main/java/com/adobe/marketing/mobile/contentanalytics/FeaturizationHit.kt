@@ -16,8 +16,7 @@ import org.json.JSONObject
 import java.util.Date
 
 /**
- * Featurization request persisted to disk for retries
- * Matches iOS FeaturizationHit.swift
+ * Featurization request persisted to disk for retries.
  */
 internal data class FeaturizationHit(
     val experienceId: String,
@@ -64,8 +63,7 @@ internal data class FeaturizationHit(
 }
 
 /**
- * Content structure nested within FeaturizationExperienceContent
- * Matches iOS ContentData struct
+ * Content structure nested within ExperienceContent.
  */
 internal data class ContentData(
     val images: List<Map<String, Any>>,
@@ -93,8 +91,7 @@ internal data class ContentData(
 }
 
 /**
- * Experience content structure for featurization service
- * Matches iOS ExperienceContent struct
+ * Experience content structure for featurization service.
  */
 internal data class ExperienceContent(
     val content: ContentData,

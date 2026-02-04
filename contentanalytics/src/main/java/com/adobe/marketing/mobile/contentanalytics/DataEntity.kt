@@ -13,6 +13,7 @@
 package com.adobe.marketing.mobile.contentanalytics
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.services.Log
 import org.json.JSONObject
 
 /**
@@ -62,7 +63,8 @@ internal object DataEntityHelper {
                 .apply { eventData?.let { setEventData(it) } }
                 .build()
         } catch (e: Exception) {
-            android.util.Log.e(
+            Log.error(
+                ContentAnalyticsConstants.LOG_TAG,
                 ContentAnalyticsConstants.LOG_TAG,
                 "Failed to convert DataEntity to Event: ${e.message}"
             )

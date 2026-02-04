@@ -140,7 +140,7 @@ internal class ContentAnalyticsOrchestrator(
             sendImmediately(event)
         }
         
-        Log.trace(TAG, TAG, "Successfully processed $entityType event")
+        Log.trace(TAG, TAG, "Processed $entityType event")
     }
     
     private fun shouldExcludeAssetEvent(event: Event): Boolean {
@@ -173,7 +173,7 @@ internal class ContentAnalyticsOrchestrator(
     /**
      * Flush all pending batched events (delegates to BatchCoordinator)
      */
-    fun flushPendingEvents() {
+    fun flush() {
         Log.debug(TAG, TAG, "Flushing pending events")
         batchCoordinator?.flush()
     }
@@ -422,7 +422,7 @@ internal class ContentAnalyticsOrchestrator(
             eventType = "Asset"
         )
         
-        Log.debug(TAG, TAG, "Successfully sent asset batch via Edge")
+        Log.debug(TAG, TAG, "Asset batch sent")
     }
     
     private fun sendExperienceInteractionEvent(

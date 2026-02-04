@@ -12,36 +12,32 @@
 
 package com.adobe.marketing.mobile.contentanalytics
 
-import com.adobe.marketing.mobile.services.DataQueue
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
 /**
- * Demonstrates the power of protocol-based dependency injection
- * All dependencies are mocked - NO disk I/O, NO real implementations
- * Tests are fast, isolated, and focused on StateManager logic only
+ * Demonstrates the power of protocol-based dependency injection.
+ * All dependencies are mocked - NO disk I/O, NO real implementations.
+ * Tests are fast, isolated, and focused on StateManager logic only.
  */
 class StateManagerWithMocksTests {
     
     private lateinit var stateManager: ContentAnalyticsStateManager
     private lateinit var mockCache: MockDefinitionCache
-    private lateinit var mockRepository: MockDefinitionRepository
     private lateinit var mockConfig: MockConfigurationManager
     
     @Before
     fun setUp() {
         // Create mocks
         mockCache = MockDefinitionCache()
-        mockRepository = MockDefinitionRepository()
         mockConfig = MockConfigurationManager()
         
         // Inject mocks into StateManager
         stateManager = ContentAnalyticsStateManager(
             configManager = mockConfig,
-            definitionCache = mockCache,
-            definitionRepository = mockRepository
+            definitionCache = mockCache
         )
     }
     
@@ -53,18 +49,16 @@ class StateManagerWithMocksTests {
     // MARK: - Store Definition Tests
     
     @Test
-    fun `storeExperienceDefinition stores in cache and repository`() {
+    fun `storeExperienceDefinition stores in cache`() {
         // Given
         val definition = createDefinition("exp1")
         
         // When
         stateManager.registerExperienceDefinition(definition)
         
-        // Then - should store in both cache and repository
+        // Then - should store in cache
         assertEquals(1, mockCache.storedDefinitions.size)
-        assertEquals(1, mockRepository.savedDefinitions.size)
         assertEquals("exp1", mockCache.storedDefinitions.first().experienceId)
-        assertEquals("exp1", mockRepository.savedDefinitions.first().experienceId)
     }
     
     // MARK: - Get Definition Tests
@@ -82,29 +76,11 @@ class StateManagerWithMocksTests {
         assertNotNull(result)
         assertEquals("exp1", result?.experienceId)
         assertEquals(1, mockCache.getCallCount)
-        assertEquals(0, mockRepository.loadCallCount) // Repository not called
-    }
-    
-    @Test
-    fun `getExperienceDefinition cache miss loads from repository`() {
-        // Given - definition only in repository
-        val definition = createDefinition("exp1")
-        mockRepository.persistedDefinitions["exp1"] = definition
-        
-        // When
-        val result = stateManager.getExperienceDefinition("exp1")
-        
-        // Then
-        assertNotNull(result)
-        assertEquals("exp1", result?.experienceId)
-        assertEquals(2, mockCache.getCallCount) // Called twice: read lock check + write lock double-check
-        assertEquals(1, mockRepository.loadCallCount) // Repository called
-        assertEquals(1, mockCache.storedDefinitions.size) // Restored to cache
     }
     
     @Test
     fun `getExperienceDefinition not found returns null`() {
-        // Given - definition doesn't exist anywhere
+        // Given - definition doesn't exist
         
         // When
         val result = stateManager.getExperienceDefinition("nonexistent")
@@ -116,7 +92,7 @@ class StateManagerWithMocksTests {
     // MARK: - Featurization Tests
     
     @Test
-    fun `markExperienceDefinitionAsSent updates cache and repository`() {
+    fun `markExperienceDefinitionAsSent updates cache`() {
         // Given - definition exists
         val definition = createDefinition("exp1", sentToFeaturization = false)
         mockCache.definitions["exp1"] = definition
@@ -126,14 +102,13 @@ class StateManagerWithMocksTests {
         
         // Then
         assertEquals(1, mockCache.updateCallCount)
-        assertEquals(1, mockRepository.saveCallCount)
         
         val updated = mockCache.definitions["exp1"]
         assertTrue(updated?.sentToFeaturization == true)
     }
     
     @Test
-    fun `hasExperienceDefinitionBeenSent cache hit returns true`() {
+    fun `hasExperienceDefinitionBeenSent returns true`() {
         // Given
         val definition = createDefinition("exp1", sentToFeaturization = true)
         mockCache.definitions["exp1"] = definition
@@ -143,21 +118,19 @@ class StateManagerWithMocksTests {
         
         // Then
         assertTrue(result)
-        assertEquals(0, mockRepository.loadCallCount) // Repository not called
     }
     
     @Test
-    fun `hasExperienceDefinitionBeenSent cache miss loads from repository`() {
-        // Given - only in repository
-        val definition = createDefinition("exp1", sentToFeaturization = true)
-        mockRepository.persistedDefinitions["exp1"] = definition
+    fun `hasExperienceDefinitionBeenSent returns false`() {
+        // Given
+        val definition = createDefinition("exp1", sentToFeaturization = false)
+        mockCache.definitions["exp1"] = definition
         
         // When
         val result = stateManager.hasExperienceDefinitionBeenSent("exp1")
         
         // Then
-        assertTrue(result)
-        assertEquals(1, mockRepository.loadCallCount)
+        assertFalse(result)
     }
     
     // MARK: - Configuration Tests
@@ -199,7 +172,6 @@ class StateManagerWithMocksTests {
         // Then
         assertEquals(1, mockConfig.resetCallCount)
         assertEquals(1, mockCache.removeAllCallCount)
-        assertEquals(1, mockRepository.clearAllCallCount)
     }
     
     // MARK: - Helper Methods
@@ -273,45 +245,6 @@ internal class MockDefinitionCache : DefinitionCacheProtocol {
         removeAllCallCount++
         definitions.clear()
         storedDefinitions.clear()
-    }
-}
-
-/** Mock repository that tracks all calls and stores definitions in memory */
-internal class MockDefinitionRepository : DefinitionRepositoryProtocol {
-    val persistedDefinitions = mutableMapOf<String, ExperienceDefinition>()
-    val savedDefinitions = mutableListOf<ExperienceDefinition>()
-    
-    var saveCallCount = 0
-    var loadCallCount = 0
-    var clearAllCallCount = 0
-    
-    override fun setDataQueue(queue: DataQueue?) {
-        // No-op for mock
-    }
-    
-    override fun save(definition: ExperienceDefinition) {
-        saveCallCount++
-        savedDefinitions.add(definition)
-        persistedDefinitions[definition.experienceId] = definition
-    }
-    
-    override fun load(experienceId: String): ExperienceDefinition? {
-        loadCallCount++
-        return persistedDefinitions[experienceId]
-    }
-    
-    override fun restoreAll(capacity: Int): List<ExperienceDefinition> {
-        return persistedDefinitions.values.take(capacity)
-    }
-    
-    override fun contains(experienceId: String): Boolean {
-        return persistedDefinitions.containsKey(experienceId)
-    }
-    
-    override fun clearAll() {
-        clearAllCallCount++
-        persistedDefinitions.clear()
-        savedDefinitions.clear()
     }
 }
 

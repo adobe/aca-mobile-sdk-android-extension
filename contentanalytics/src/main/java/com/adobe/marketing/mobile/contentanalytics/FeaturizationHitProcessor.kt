@@ -152,7 +152,7 @@ internal class FeaturizationHitProcessor(
             when {
                 result.isSuccess -> {
                     // Registration successful
-                    Log.debug(TAG, TAG, "Experience registered successfully | ID: ${hit.experienceId}")
+                    Log.debug(TAG, TAG, "✅ Featurization sent (id=${hit.experienceId})")
                     entityRetryIntervalMapping.remove(entityId)
                     completion(true) // Remove from queue
                 }
