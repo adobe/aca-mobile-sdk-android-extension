@@ -18,8 +18,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
- * Reads persisted events from disk, accumulates in memory, and dispatches on flush.
- * Used by BatchCoordinator to integrate with PersistentHitQueue for crash recovery.
+ * Accumulates events in memory and dispatches on flush.
+ * Used by BatchCoordinator for batching. Disk persistence handled separately.
  */
 internal class DirectHitProcessor(
     private val type: BatchHitType
@@ -30,32 +30,26 @@ internal class DirectHitProcessor(
     }
     
     private val accumulatedEvents = mutableListOf<Event>()
-    private val dispatchedEventIds = mutableSetOf<String>()
+    private val accumulatedEventIds = mutableSetOf<String>()
     private var processingCallback: ((List<Event>) -> Unit)? = null
     private val mutex = Mutex()
     
-    /**
-     * Set callback for dispatching accumulated events.
-     */
     fun setCallback(callback: (List<Event>) -> Unit) {
         processingCallback = callback
     }
     
-    /**
-     * Accumulate event in memory for batching.
-     */
     suspend fun accumulateEvent(event: Event) {
         mutex.withLock {
             accumulatedEvents.add(event)
-            Log.trace(TAG, TAG, "Accumulated $type event in memory | ID: ${event.uniqueIdentifier} | Total: ${accumulatedEvents.size}")
+            accumulatedEventIds.add(event.uniqueIdentifier)
+            Log.trace(TAG, TAG, "Accumulated $type event | ID: ${event.uniqueIdentifier} | Total: ${accumulatedEvents.size}")
         }
     }
     
     /**
-     * Process hit from persistent queue during crash recovery.
-     * - Normal operation: Event already in memory, keep on disk until dispatched
-     * - Crash recovery: Event not in memory, accumulate from disk
-     * - After dispatch: Event ID tracked, remove from disk
+     * Process hit from disk during crash recovery.
+     * Accumulates event in memory if not already present.
+     * Returns true to remove from disk (we'll clear disk after dispatch).
      */
     override suspend fun processHit(entity: com.adobe.marketing.mobile.services.DataEntity): Boolean {
         return mutex.withLock {
@@ -68,21 +62,16 @@ internal class DirectHitProcessor(
             
             val eventId = event.uniqueIdentifier
             
-            // If already dispatched to Edge, remove from disk
-            if (dispatchedEventIds.contains(eventId)) {
-                Log.trace(TAG, TAG, "Event dispatched, removing from disk | ID: $eventId")
-                return@withLock true  // Remove from disk
-            }
-            
-            // Otherwise, accumulate in memory but keep on disk until dispatched
-            val alreadyAccumulated = accumulatedEvents.any { it.uniqueIdentifier == eventId }
-            
-            if (!alreadyAccumulated) {
+            // Accumulate for crash recovery if not already in memory
+            if (!accumulatedEventIds.contains(eventId)) {
                 accumulatedEvents.add(event)
-                Log.trace(TAG, TAG, "Event accumulated, keeping on disk | Type: $type | ID: $eventId")
+                accumulatedEventIds.add(eventId)
+                Log.trace(TAG, TAG, "Recovered event from disk | Type: $type | ID: $eventId")
             }
             
-            return@withLock false  // Keep on disk until dispatched to Edge
+            // Return true to clear from disk - we've accumulated it in memory
+            // Disk will be cleared after successful dispatch to Edge
+            return@withLock true
         }
     }
     
@@ -96,6 +85,7 @@ internal class DirectHitProcessor(
             
             val events = accumulatedEvents.toList()
             accumulatedEvents.clear()
+            accumulatedEventIds.clear()
             events
         }
         
@@ -106,36 +96,13 @@ internal class DirectHitProcessor(
         return eventsToProcess
     }
     
-    /**
-     * Mark events as dispatched to Edge Network.
-     * 
-     * Called by BatchCoordinator after events have been sent to Edge.
-     * This allows processHit() to remove these events from disk on next processing cycle.
-     * 
-     * @param events Events that have been successfully dispatched
-     */
-    suspend fun markEventsAsDispatched(events: List<Event>) {
-        mutex.withLock {
-            events.forEach { event ->
-                dispatchedEventIds.add(event.uniqueIdentifier)
-            }
-            Log.debug(TAG, TAG, "Marked ${events.size} $type events as dispatched")
-        }
-    }
-    
-    /**
-     * Clear all accumulated events without processing.
-     */
     suspend fun clear() {
         mutex.withLock {
             accumulatedEvents.clear()
-            dispatchedEventIds.clear()
+            accumulatedEventIds.clear()
         }
     }
     
-    /**
-     * Get count of accumulated events.
-     */
     suspend fun getAccumulatedCount(): Int {
         return mutex.withLock {
             accumulatedEvents.size
@@ -150,4 +117,3 @@ internal enum class BatchHitType {
     ASSET,
     EXPERIENCE
 }
-

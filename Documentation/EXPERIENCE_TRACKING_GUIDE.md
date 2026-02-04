@@ -46,31 +46,25 @@ ContentAnalytics.trackExperience(
 )
 ```
 
-## Cross-Session Persistence
+## Session Lifecycle
 
-Experience definitions persist across app sessions. You don't need to re-register after app restarts, crashes, or backgrounding.
+Experience definitions are cached in memory for the duration of the app session. After app restart or crash, you'll need to re-register experiences before tracking.
 
 ```kotlin
-// Session 1
+// Each app session
 val expId = ContentAnalytics.trackExperience(
     interactionType = InteractionType.DEFINITION,
+    assetURLs = listOf("https://example.com/hero.jpg"),
+    texts = listOf(...),
     ...
 )
 ContentAnalytics.trackExperience(
     interactionType = InteractionType.VIEW,
     experienceId = expId
 )
-
-// [App exits or crashes]
-
-// Session 2 - works without re-registering
-ContentAnalytics.trackExperience(
-    interactionType = InteractionType.VIEW,
-    experienceId = expId
-)
 ```
 
-Only re-register if the content changes:
+Re-registration is idempotent - calling `trackExperience()` with DEFINITION for the same content has no negative side effects.
 
 ```kotlin
 val newExpId = ContentAnalytics.trackExperience(
@@ -179,8 +173,7 @@ If you track without registering:
 
 ```
 ⚠️ Experience definition not found for 'exp-123'. 
-   Make sure to call ContentAnalytics.trackExperience() with 
-   interactionType: DEFINITION (including assetURLs and texts) before tracking views/clicks.
+   Call registerExperience() before tracking views/clicks.
 ```
 
 This means:
@@ -208,16 +201,9 @@ ContentAnalytics.trackExperience(
 )
 ```
 
-## Performance Notes
+## Best Practice
 
-The extension keeps 100 most recent definitions in memory (LRU cache). Older ones are evicted but remain on disk. They're loaded transparently when needed.
-
-Definitions persist until app uninstall or `MobileCore.resetIdentities()`. If you have > 500 unique experiences, a performance warning is logged.
-
-Best practices:
-- Reuse experience IDs when possible
-- Use stable server-provided IDs
-- Call `MobileCore.resetIdentities()` on logout to clear old data
+Always call `registerExperience()` before `trackExperience()` with VIEW/CLICK. Registration is idempotent - calling it multiple times has no negative effects.
 
 ## Testing
 
@@ -229,15 +215,13 @@ MobileCore.setLogLevel(LoggingMode.VERBOSE)
 
 Look for registration confirmation:
 ```
-[ContentAnalytics] Definition persisted to disk | ID: exp-abc123
+[ContentAnalytics] Stored experience definition: exp-abc123 with 3 assets
 ```
 
 And tracking confirmation:
 ```
 [ContentAnalytics] Experience event processed successfully: track-view - exp-abc123
 ```
-
-Test cross-session: register, force quit, relaunch, track same ID. No warning should appear.
 
 ## Troubleshooting
 

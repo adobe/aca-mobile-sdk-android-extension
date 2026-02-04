@@ -47,7 +47,7 @@ internal class FeaturizationCoordinator(
             hitQueue = queue
             
             if (hitQueue != null) {
-                Log.debug(TAG, TAG, "✅ Featurization queue initialized successfully")
+                Log.debug(TAG, TAG, "✅ Featurization queue ready")
             } else {
                 Log.debug(TAG, TAG, "Featurization queue not yet available (waiting for valid configuration)")
             }
@@ -56,7 +56,7 @@ internal class FeaturizationCoordinator(
     
     /**
      * Queue an experience for featurization
-     * @return true if successfully queued, false otherwise
+     * @return true if queued, false otherwise
      */
     fun queueExperience(experienceId: String): Boolean {
         // Validate prerequisites
@@ -82,31 +82,31 @@ internal class FeaturizationCoordinator(
     /** Checks consent, config, and experience definition before featurization */
     private fun validatePrerequisites(experienceId: String): FeaturizationPrerequisites? {
         if (!privacyValidator.isDataCollectionAllowed()) {
-            Log.debug(TAG, TAG, "❌ Skipping featurization - consent denied")
+            Log.debug(TAG, TAG, "❌ Consent denied")
             return null
         }
         
-        Log.debug(TAG, TAG, "✅ Privacy check passed - proceeding with featurization")
+        Log.debug(TAG, TAG, "✅ Consent OK")
         
         val config = state.configuration
         if (config == null) {
-            Log.debug(TAG, TAG, "❌ Skipping featurization - No configuration available")
+            Log.debug(TAG, TAG, "❌ No config")
             return null
         }
         
         val serviceUrl = config.getFeaturizationBaseUrl()
         if (serviceUrl.isNullOrEmpty()) {
-            Log.debug(TAG, TAG, "❌ Skipping featurization - Cannot determine URL | edgeDomain: ${config.edgeDomain}, region: ${config.region}")
+            Log.debug(TAG, TAG, "❌ Missing URL (edgeDomain=${config.edgeDomain}, region=${config.region})")
             return null
         }
         
         val imsOrg = config.experienceCloudOrgId
         if (imsOrg.isNullOrEmpty()) {
-            Log.debug(TAG, TAG, "❌ Skipping featurization - IMS Org not configured | experienceCloud.org: ${config.experienceCloudOrgId}")
+            Log.debug(TAG, TAG, "❌ Missing IMS org")
             return null
         }
         
-        Log.debug(TAG, TAG, "✅ Configuration valid | URL: $serviceUrl | Org: $imsOrg")
+        Log.debug(TAG, TAG, "✅ Config OK (url=$serviceUrl, org=$imsOrg)")
         
         val definition = state.getExperienceDefinition(experienceId)
         if (definition == null) {
@@ -114,7 +114,7 @@ internal class FeaturizationCoordinator(
             return null
         }
         
-        Log.trace(TAG, TAG, "✅ Definition found | ID: $experienceId | Assets: ${definition.assets.size}")
+        Log.trace(TAG, TAG, "✅ Definition found (id=$experienceId, assets=${definition.assets.size})")
         
         return FeaturizationPrerequisites(config, imsOrg, definition)
     }

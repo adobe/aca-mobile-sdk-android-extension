@@ -68,10 +68,6 @@ internal class ContentAnalyticsExtension(extensionApi: ExtensionApi) : Extension
         
         Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "ContentAnalytics extension registered")
         
-        // Initialize persistent storage for experience definitions (restored from disk on set)
-        val definitionsQueue = factory.createDefinitionsDataQueue()
-        stateManager.setDefinitionsDataQueue(definitionsQueue)
-        
         val defaultConfig = ContentAnalyticsConfiguration()
         stateManager.updateConfiguration(defaultConfig)
         orchestrator.updateConfiguration(defaultConfig)
@@ -250,7 +246,7 @@ internal class ContentAnalyticsExtension(extensionApi: ExtensionApi) : Extension
         }
         
         Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "App backgrounded - flushing pending batch")
-        orchestrator.flushPendingEvents()
+        orchestrator.flush()
         Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "Background flush complete")
     }
     

@@ -367,7 +367,7 @@ class EventExtensionsTest {
         assertFalse("Should not identify click action as view action", action.isViewAction())
     }
     
-    // Note: Android only supports VIEW and CLICK actions (no DEFINITION action like iOS)
+    // Android supports VIEW and CLICK actions only
     
     @Test
     fun `isClickAction returns true for click action`() {

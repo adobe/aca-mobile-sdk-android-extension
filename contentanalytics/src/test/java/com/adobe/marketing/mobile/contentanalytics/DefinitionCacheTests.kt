@@ -34,7 +34,7 @@ class DefinitionCacheTests {
     // MARK: - Store and Retrieve Tests
     
     @Test
-    fun `store and retrieve definition successfully`() {
+    fun `store and retrieve definition`() {
         // Given
         val definition = createDefinition("exp1")
         
@@ -72,7 +72,7 @@ class DefinitionCacheTests {
     // MARK: - Update Tests
     
     @Test
-    fun `update existing definition successfully`() {
+    fun `update existing definition`() {
         // Given
         val definition = createDefinition("exp1", sentToFeaturization = false)
         cache.store(definition)

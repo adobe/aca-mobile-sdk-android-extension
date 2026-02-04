@@ -17,13 +17,8 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 
 /**
- * Factory for creating ContentAnalytics services and dependencies
- * 
- * Matches iOS ContentAnalyticsFactory pattern:
- * - Dependency injection
- * - Proper initialization order
- * - Component wiring
- * - Testability
+ * Factory for creating ContentAnalytics services and dependencies.
+ * Handles dependency injection, initialization order, and component wiring.
  */
 internal class ContentAnalyticsFactory(
     private val extensionApi: ExtensionApi,
@@ -47,7 +42,6 @@ internal class ContentAnalyticsFactory(
         val xdmEventBuilder = createXDMEventBuilder()
         batchCoordinator = createBatchCoordinator()
         
-        // Create featurization coordinator (manages featurization logic)
         val featurizationCoordinator = createFeaturizationCoordinator()
         
         val orchestrator = ContentAnalyticsOrchestrator(
@@ -68,7 +62,7 @@ internal class ContentAnalyticsFactory(
             }
         )
         
-        Log.debug(TAG, TAG, "ContentAnalyticsOrchestrator created with featurization coordinator")
+        Log.debug(TAG, TAG, "Orchestrator ready")
         
         return orchestrator
     }
@@ -106,7 +100,6 @@ internal class ContentAnalyticsFactory(
     }
     
     private fun createBatchCoordinator(): BatchCoordinator? {
-        // Get DataQueues from ServiceProvider (like iOS)
         val dataQueueService = ServiceProvider.getInstance().dataQueueService
         
         val assetDataQueue = dataQueueService.getDataQueue(
@@ -141,28 +134,7 @@ internal class ContentAnalyticsFactory(
     }
     
     /**
-     * Create definitions data queue for persistent experience definition storage
-     * Matches iOS createDefinitionsDataQueue()
-     */
-    fun createDefinitionsDataQueue(): com.adobe.marketing.mobile.services.DataQueue? {
-        val dataQueueService = ServiceProvider.getInstance().dataQueueService
-        
-        val dataQueue = dataQueueService.getDataQueue(
-            ContentAnalyticsConstants.DEFINITIONS_QUEUE_NAME
-        )
-        
-        if (dataQueue == null) {
-            Log.warning(TAG, TAG, "Failed to create data queue for experience definitions")
-            return null
-        }
-        
-        Log.debug(TAG, TAG, "✅ Definitions data queue created")
-        return dataQueue
-    }
-    
-    /**
-     * Create featurization hit queue (optional, for ML service)
-     * Matches iOS createFeaturizationHitQueue()
+     * Create featurization hit queue for ML service requests.
      */
     fun createFeaturizationHitQueue(): PersistentHitQueue? {
         val dataQueueService = ServiceProvider.getInstance().dataQueueService
@@ -176,7 +148,6 @@ internal class ContentAnalyticsFactory(
             return null
         }
         
-        // Get configuration
         val config = state.configuration
         if (config == null) {
             Log.warning(TAG, TAG, "No configuration available for featurization service")
@@ -189,18 +160,14 @@ internal class ContentAnalyticsFactory(
             return null
         }
         
-        Log.debug(TAG, TAG, "Using featurization base URL: $serviceUrl")
+        Log.debug(TAG, TAG, "Featurization URL: $serviceUrl")
         
-        // Create featurization service for the processor
         val featurizationService = ExperienceFeaturizationService(
             baseUrl = serviceUrl,
             networkService = ServiceProvider.getInstance().networkService
         )
         
-        // Create hit processor that handles featurization requests
         val hitProcessor = FeaturizationHitProcessor(featurizationService = featurizationService)
-        
-        // Create persistent hit queue with processor
         val hitQueue = PersistentHitQueue(dataQueue, hitProcessor)
         hitQueue.beginProcessing()
         

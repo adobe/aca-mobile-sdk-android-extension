@@ -106,7 +106,6 @@ internal object ContentAnalyticsConstants {
     const val ASSET_BATCH_QUEUE_NAME = "com.adobe.module.contentanalytics.assetbatch"
     const val EXPERIENCE_BATCH_QUEUE_NAME = "com.adobe.module.contentanalytics.experiencebatch"
     const val FEATURIZATION_QUEUE_NAME = "com.adobe.module.contentanalytics.featurization"
-    const val DEFINITIONS_QUEUE_NAME = "com.adobe.module.contentanalytics.definitions"
     
     // Log Labels
     object LogLabels {

@@ -555,9 +555,8 @@ class ContentAnalyticsEndToEndTest {
     
     // MARK: - Privacy/Consent Tests
     
-    // Note: Privacy consent is checked by Edge extension, not by Content Analytics
-    // Content Analytics will dispatch events, and Edge will drop them if consent is denied
-    // This matches iOS behavior and standard Adobe SDK architecture
+    // Privacy consent is checked by Edge extension - events are dispatched here,
+    // Edge drops them if consent is denied
     
     // MARK: - Experience Asset Attribution
     

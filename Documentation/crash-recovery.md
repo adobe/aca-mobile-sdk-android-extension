@@ -2,22 +2,21 @@
 
 ## Overview
 
-Content Analytics uses `PersistentHitQueue` to protect against data loss during the batching window (0-5 seconds). Events are written to disk immediately and only removed **after** successful dispatch to Edge Network.
+Content Analytics uses `PersistentHitQueue` to protect against data loss during the batching window (0-5 seconds). Events are written to disk immediately and cleared during crash recovery after being accumulated in memory.
 
 ## How It Works
 
 ```
 User tracks event
-  └─> Event added to memory + disk ✓ crash-safe
+  └─> Event added to memory + disk (crash-safe)
       │
-      └─> Batching (0-5 seconds, events stay on disk)
+      └─> Batching (0-5 seconds)
           │
           └─> Flush triggered
               │
               ├─> Process accumulated events
               ├─> Calculate aggregated metrics
-              ├─> Dispatch to Edge Network
-              └─> Mark events as dispatched → removed from disk on next cycle
+              └─> Dispatch to Edge Network (Edge guarantees delivery)
 ```
 
 ## Architecture Components
@@ -26,7 +25,7 @@ User tracks event
 **Responsibilities:**
 - Manages batching logic (count threshold + time-based flush)
 - Writes incoming events to disk immediately via `PersistentHitQueue`
-- Maintains in-memory event counters (not the events themselves)
+- Maintains in-memory event counters
 - Triggers flush when threshold reached (10 events or 5 seconds)
 - Coordinates between `DirectHitProcessor` and `ContentAnalyticsOrchestrator`
 
@@ -39,29 +38,22 @@ fun addAssetEvent(event: Event)
 
 suspend fun performFlush()
   ├─> val events = assetHitProcessor.processAccumulatedEvents()
-  ├─> [Orchestrator processes events → dispatches to Edge]
-  └─> assetHitProcessor.markEventsAsDispatched(events)  // Allow disk cleanup
+  └─> [Orchestrator processes events → dispatches to Edge]
+      └─> Edge guarantees delivery from here
 ```
 
 ### DirectHitProcessor
 **Responsibilities:**
 - Implements `HitProcessor` interface for `PersistentHitQueue` integration
 - Accumulates events in memory for fast batching
-- Tracks which events have been dispatched to Edge
-- Removes events from disk only after Edge dispatch
+- Clears events from disk during crash recovery (after accumulating in memory)
 
 **Event Lifecycle:**
 ```kotlin
 override suspend fun processHit(entity: DataEntity): Boolean
   ├─> Decode event from disk
-  ├─> Check if already dispatched to Edge
-  │   ├─> YES: return true → remove from disk ✓
-  │   └─> NO:  return false → keep on disk ✓
-  └─> Accumulate in memory for batching
-
-suspend fun markEventsAsDispatched(events: List<Event>)
-  └─> Add event IDs to dispatchedEventIds set
-      └─> Next processHit() cycle will remove from disk
+  ├─> Accumulate in memory (if not already present)
+  └─> return true → clear from disk (event now in memory)
 ```
 
 ### PersistentHitQueue (AEPServices)
@@ -89,17 +81,15 @@ Time   │ Event                                │ Memory │ Disk │ Safe?
 02.00s │ Timer fires → Flush triggered        │ ✓      │ ✓    │ ✅ YES
 02.01s │ Process accumulated events           │ ✓      │ ✓    │ ✅ YES
 02.02s │ Calculate metrics (1 view, 2 clicks) │ ✓      │ ✓    │ ✅ YES
-02.03s │ Dispatch to Edge Network             │ ✓      │ ✓    │ ✅ YES
-02.04s │ markEventsAsDispatched() called      │ ✗      │ ✓    │ ✅ YES
-02.05s │ Next queue cycle                     │ ✗      │ ✗    │ ✅ YES*
-       │ (*Edge has received events)          │        │      │
+02.03s │ Dispatch to Edge Network             │ ✗      │ ✗    │ ✅ YES*
+       │ (*Edge guarantees delivery)          │        │      │
 
 Legend:
 ✓ = Present
 ✗ = Not present
 ```
 
-**Critical Protection:** Events remain on disk for the entire 0-5 second batching window, ensuring crash recovery.
+Events stay on disk during the entire batching window. Once we hand off to Edge, their persistence takes over.
 
 ## Crash Scenarios
 
@@ -113,7 +103,7 @@ Crash:  ⚡ App terminated
 Recovery on Next Launch:
 1. PersistentHitQueue.beginProcessing() starts
 2. DirectHitProcessor.processHit() called for each persisted event
-3. Events accumulated in memory
+3. Events accumulated in memory, cleared from disk
 4. Normal batch processing resumes
 
 Result: ✅ ZERO DATA LOSS
@@ -121,48 +111,36 @@ Result: ✅ ZERO DATA LOSS
 
 ### Scenario 2: Crash During Flush
 ```
-Status: Events being processed, still on disk
+Status: Events being processed
 Crash:  ⚡ App terminated mid-dispatch
         └─> Memory lost ✗
-        └─> Disk persists ✓
+        └─> Events may still be on disk if not yet processed
 
 Recovery on Next Launch:
-1. Events still on disk (not marked as dispatched)
-2. Re-read and re-dispatch on next flush
+1. Any remaining events on disk are recovered
+2. Re-accumulated and dispatched on next flush
 
-Result: ✅ ZERO DATA LOSS (possible duplicate dispatch)
+Result: ✅ ZERO DATA LOSS (possible duplicate if crash after Edge dispatch)
 ```
 
 ### Scenario 3: Crash After Edge Dispatch
 ```
-Status: Events dispatched, marked for removal
+Status: Events dispatched to Edge
 Crash:  ⚡ App terminated
-        └─> Memory lost ✗
-        └─> Disk cleanup incomplete
+        └─> Disk already cleared during processHit()
+        └─> Edge has the events
 
-Recovery on Next Launch:
-1. Events still on disk but marked as dispatched
-2. processHit() sees dispatchedEventIds → removes from disk
-
-Result: ✅ MINIMAL DATA LOSS RISK (~10-20ms window*)
+Result: ✅ ZERO DATA LOSS - Edge guarantees delivery
 ```
-
-**\*Window:** Small gap between Edge dispatch and disk removal is unavoidable without confirmation callbacks. Edge Network's own `PersistentHitQueue` takes over from this point.
 
 ## Data Loss Windows
 
 ### Protected (✅ SAFE):
 - **0-5 seconds (batching):** Events on disk ✓
-- **During flush/dispatch:** Events on disk ✓
-- **Edge handoff:** Edge's persistence takes over ✓
+- **During flush/dispatch:** Events on disk until processed ✓
+- **After Edge dispatch:** Edge's persistence takes over ✓
 
-### Minimal Risk (⚠️ 10-20ms):
-- **After Edge dispatch, before disk cleanup:** Events in Edge's Event Hub but not yet in Edge's persistent queue
-- This is unavoidable without confirmation callbacks between extensions
-- Edge's PersistentHitQueue provides subsequent crash recovery
-
-### Comparison with Other Extensions:
-Most Adobe extensions (e.g., Places, Messaging) **do not** persist events before dispatching to Edge. Content Analytics provides **stronger crash recovery guarantees** during the batching window.
+Most Adobe extensions don't persist before Edge dispatch. We do because of the batching window - without it, crashes during batching would lose data.
 
 ## Edge Network Handoff
 
@@ -177,7 +155,7 @@ ContentAnalytics → extensionApi.dispatch(event) → Event Hub → Edge Extensi
 
 **Handoff Point:** After `eventDispatcher.dispatch()` completes, Edge extension owns persistence.
 
-**No Confirmation:** Extensions cannot receive dispatch confirmations from Edge (architectural limitation).
+**Edge Guarantees:** Once Edge receives the event, it handles persistence, retries, and delivery confirmation.
 
 ## Metrics Calculation
 
@@ -199,10 +177,7 @@ private fun buildAssetMetricsCollection(events: List<Event>): AssetMetricsCollec
 }
 ```
 
-**Benefits:**
-- No state synchronization issues
-- Crash recovery automatically restores correct metrics
-- Single source of truth (events on disk)
+This avoids state sync issues - we just count events on flush. If the app crashes, the restored events give us the same metrics.
 
 ## Configuration
 
@@ -248,10 +223,7 @@ private val mutex = Mutex()
 // All state mutations wrapped in mutex.withLock { }
 ```
 
-**Benefits:**
-- Structured concurrency with `CoroutineScope`
-- Automatic cleanup on `close()`
-- Race condition prevention
+The `CoroutineScope` gets canceled on `close()`, which cleans up any in-flight operations.
 
 ## Testing Crash Recovery
 
@@ -295,16 +267,16 @@ LoggingMode.VERBOSE
 
 Look for:
 ```
-[ContentAnalytics] Event accumulated, keeping on disk | ID: <uuid>
-[ContentAnalytics] Event dispatched, removing from disk | ID: <uuid>
-[ContentAnalytics] Recovered ASSET event from disk | ID: <uuid>
+[ContentAnalytics] Accumulated ASSET event | ID: <uuid>
+[ContentAnalytics] Recovered event from disk | Type: ASSET | ID: <uuid>
+[ContentAnalytics] Processing 5 accumulated ASSET events
 ```
 
 ## Implementation Details
 
 ### Key Files
 - `BatchCoordinator.kt` - Batching logic and persistence coordination
-- `DirectHitProcessor.kt` - Disk cleanup and crash recovery
+- `DirectHitProcessor.kt` - Crash recovery and event accumulation
 - `ContentAnalyticsOrchestrator.kt` - Metrics calculation and Edge dispatch
 - `PersistentHitQueue` (AEPServices) - SQLite-backed queue
 
@@ -316,12 +288,80 @@ Event tracked
       ├─> PersistentHitQueue.queue()            [disk]
       └─> checkAndFlushIfNeeded()
           └─> performFlush()
-              ├─> DirectHitProcessor.processAccumulatedEvents()
-              │   └─> Orchestrator.processAssetEvents()
-              │       └─> EventDispatcher.dispatch()  [→ Edge]
-              └─> DirectHitProcessor.markEventsAsDispatched()
-                  └─> [Next queue cycle removes from disk]
+              └─> DirectHitProcessor.processAccumulatedEvents()
+                  └─> Orchestrator.processAssetEvents()
+                      └─> EventDispatcher.dispatch()  [→ Edge]
 ```
+
+### Callback Chain Architecture
+
+The SDK uses a callback chain to decouple components while maintaining type safety:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           INITIALIZATION PHASE                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ContentAnalyticsFactory.createOrchestrator()                               │
+│    │                                                                         │
+│    ├─> Creates BatchCoordinator(assetQueue, experienceQueue, state)         │
+│    │     └─> DirectHitProcessor initialized with no-op callbacks            │
+│    │                                                                         │
+│    ├─> Creates ContentAnalyticsOrchestrator(batchCoordinator, ...)          │
+│    │                                                                         │
+│    └─> Wires callbacks: batchCoordinator.setCallbacks(                      │
+│          assetCallback: orchestrator::processAssetEvents,                   │
+│          experienceCallback: orchestrator::processExperienceEvents          │
+│        )                                                                     │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            RUNTIME DATA FLOW                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  User calls ContentAnalytics.trackAssetInteraction()                        │
+│    │                                                                         │
+│    v                                                                         │
+│  ┌──────────────────┐                                                        │
+│  │ BatchCoordinator │                                                        │
+│  │  addAssetEvent() │──────────────────────────────────────────┐            │
+│  └────────┬─────────┘                                          │            │
+│           │                                                    │            │
+│           v                                                    v            │
+│  ┌────────────────────┐                           ┌─────────────────────┐   │
+│  │ DirectHitProcessor │                           │ PersistentHitQueue  │   │
+│  │ accumulateEvent()  │                           │ queue() [disk]      │   │
+│  │ [memory buffer]    │                           └─────────────────────┘   │
+│  └────────┬───────────┘                                                     │
+│           │                                                                  │
+│           │ (on flush trigger: count >= 10 or timer >= 2s)                  │
+│           v                                                                  │
+│  ┌────────────────────────────┐                                             │
+│  │ DirectHitProcessor         │                                             │
+│  │ processAccumulatedEvents() │                                             │
+│  └────────┬───────────────────┘                                             │
+│           │                                                                  │
+│           │ invokes processingCallback(events)                              │
+│           v                                                                  │
+│  ┌─────────────────────────────────┐                                        │
+│  │ ContentAnalyticsOrchestrator    │                                        │
+│  │ processAssetEvents(events)      │                                        │
+│  │   ├─> Group by asset key        │                                        │
+│  │   ├─> Calculate metrics         │                                        │
+│  │   └─> Build XDM payload         │                                        │
+│  └────────┬────────────────────────┘                                        │
+│           │                                                                  │
+│           v                                                                  │
+│  ┌───────────────────┐                                                      │
+│  │ EdgeEventDispatcher│                                                      │
+│  │ dispatch()         │──────────────> Edge Network                         │
+│  └───────────────────┘                                                      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+Callbacks avoid circular dependencies - BatchCoordinator doesn't need to import Orchestrator. Also makes testing easier since we can inject mocks.
 
 ## Comparison with Edge Extension
 
@@ -333,14 +373,13 @@ Event tracked
 | Network retries | ✅ Edge handles | ✅ Exponential backoff |
 | Crash recovery during batch | ✅ FULL | N/A |
 
-**Why the difference?** Content Analytics has a batching window (0-5 seconds) where events accumulate before dispatch. Without persistence, crashes during this window would lose data. Edge extension dispatches immediately, so it relies on its own PersistentHitQueue after dispatch.
+Content Analytics batches events for 0-5 seconds before dispatch. Without disk persistence during that window, crashes would lose data. Edge dispatches immediately so it doesn't need this.
 
 ## Known Limitations
 
 1. **No dispatch confirmation:** Extensions cannot receive callbacks from Edge to confirm receipt
 2. **Possible duplicates:** Crash during Edge dispatch may cause duplicate events (Edge deduplication handles this)
-3. **10-20ms window:** Small gap between Edge dispatch and disk cleanup is unavoidable
-4. **Memory overhead:** Events held in memory + disk during batching (minimal: ~40KB)
+3. **Memory overhead:** Events held in memory + disk during batching (minimal: ~40KB)
 
 ## Maintenance Notes
 
@@ -353,7 +392,7 @@ When adding new event types beyond asset/experience:
 4. Update `performFlush()` to handle new type
 
 ### Disk Cleanup
-- Events automatically removed after Edge dispatch
+- Events cleared from disk during crash recovery (processHit)
 - Manual cleanup: `clearPendingBatch()` for identity reset
 - Queue close: `close()` on extension shutdown
 
@@ -366,7 +405,6 @@ Track these metrics for health monitoring:
 
 ---
 
-**Last Updated:** 2026-01-28  
+**Last Updated:** 2026-01-29  
 **Version:** 5.0.0  
 **Platform:** Android
-

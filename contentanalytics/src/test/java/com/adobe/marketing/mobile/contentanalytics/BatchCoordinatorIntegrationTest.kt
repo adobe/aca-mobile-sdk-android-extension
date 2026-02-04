@@ -235,9 +235,7 @@ class BatchCoordinatorIntegrationTest {
         batchCoordinator.flush()
         delay(1000)
         
-        // Then - Should only process unique events (deduplication by event ID)
-        // Note: The exact count depends on internal deduplication logic
-        // We just verify no crash occurs and some events were processed
+        // Then - deduplication applied, verify no crash
         assertTrue("Should have processed events", capturedEvents.isNotEmpty())
     }
     

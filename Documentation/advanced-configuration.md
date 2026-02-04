@@ -28,7 +28,7 @@ Events are automatically flushed when:
 1. Batch size reaches `maxBatchSize`
 2. Timer reaches `batchFlushInterval`
 3. App goes to background (Lifecycle close event)
-4. `flushPendingEvents()` is called manually
+4. `flush()` is called manually
 
 ### Disabling Batching
 
