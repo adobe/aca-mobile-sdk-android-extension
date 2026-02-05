@@ -1,0 +1,34 @@
+/*
+ * Copyright 2026 Adobe. All rights reserved.
+ * This file is licensed to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+
+package com.adobe.marketing.mobile.contentanalytics
+
+import com.adobe.marketing.mobile.Event
+
+/**
+ * Interface for building aggregated metrics collections from events
+ */
+internal interface MetricsBuilding {
+    /**
+     * Builds an asset metrics collection from a batch of asset events
+     * @param events The asset events to aggregate
+     * @return A pair containing the metrics collection and the triggering interaction type
+     */
+    fun buildAssetMetrics(events: List<Event>): Pair<AssetMetricsCollection, InteractionType>
+
+    /**
+     * Builds an experience metrics collection from a batch of experience events
+     * @param events The experience events to aggregate
+     * @return A pair containing the metrics collection and the triggering interaction type
+     */
+    fun buildExperienceMetrics(events: List<Event>): Pair<ExperienceMetricsCollection, InteractionType>
+}

@@ -37,18 +37,40 @@ internal class ContentAnalyticsFactory(
      * Create the complete orchestrator with all dependencies
      */
     fun createContentAnalyticsOrchestrator(): ContentAnalyticsOrchestrator {
+        // Create helper components
         val eventDispatcher = createEventDispatcher()
         privacyValidator = createPrivacyValidator()
         val xdmEventBuilder = createXDMEventBuilder()
         batchCoordinator = createBatchCoordinator()
-        
         val featurizationCoordinator = createFeaturizationCoordinator()
         
-        val orchestrator = ContentAnalyticsOrchestrator(
+        // Create processing components
+        val eventValidator = createEventValidator()
+        val eventExclusionFilter = createEventExclusionFilter()
+        val metricsBuilder = createMetricsBuilder()
+        
+        val assetEventProcessor = AssetEventProcessor(
             state = state,
             eventDispatcher = eventDispatcher,
-            privacyValidator = privacyValidator!!,
             xdmEventBuilder = xdmEventBuilder,
+            metricsBuilder = metricsBuilder
+        )
+        
+        val experienceEventProcessor = ExperienceEventProcessor(
+            state = state,
+            eventDispatcher = eventDispatcher,
+            xdmEventBuilder = xdmEventBuilder,
+            metricsBuilder = metricsBuilder,
+            featurizationCoordinator = featurizationCoordinator
+        )
+        
+        // Create orchestrator with all dependencies
+        val orchestrator = ContentAnalyticsOrchestrator(
+            state = state,
+            eventValidator = eventValidator,
+            eventExclusionFilter = eventExclusionFilter,
+            assetEventProcessor = assetEventProcessor,
+            experienceEventProcessor = experienceEventProcessor,
             featurizationCoordinator = featurizationCoordinator,
             batchCoordinator = batchCoordinator
         )
@@ -87,6 +109,63 @@ internal class ContentAnalyticsFactory(
     }
     
     
+    // Processing Component Creation
+    
+    /**
+     * Creates an EventValidator for validating incoming events.
+     */
+    fun createEventValidator(): EventValidating {
+        return EventValidator(state)
+    }
+    
+    /**
+     * Creates an EventExclusionFilter for filtering events based on configuration.
+     */
+    fun createEventExclusionFilter(): EventExclusionFiltering {
+        return EventExclusionFilter(state)
+    }
+    
+    /**
+     * Creates a MetricsBuilder for aggregating event metrics.
+     */
+    fun createMetricsBuilder(): MetricsBuilding {
+        return MetricsBuilder(state)
+    }
+    
+    /**
+     * Creates an AssetEventProcessor for processing asset events.
+     */
+    fun createAssetEventProcessor(
+        eventDispatcher: EventDispatcher,
+        xdmEventBuilder: XDMEventBuilder,
+        metricsBuilder: MetricsBuilding
+    ): AssetEventProcessing {
+        return AssetEventProcessor(
+            state = state,
+            eventDispatcher = eventDispatcher,
+            xdmEventBuilder = xdmEventBuilder,
+            metricsBuilder = metricsBuilder
+        )
+    }
+    
+    /**
+     * Creates an ExperienceEventProcessor for processing experience events.
+     */
+    fun createExperienceEventProcessor(
+        eventDispatcher: EventDispatcher,
+        xdmEventBuilder: XDMEventBuilder,
+        metricsBuilder: MetricsBuilding,
+        featurizationCoordinator: FeaturizationCoordinator
+    ): ExperienceEventProcessing {
+        return ExperienceEventProcessor(
+            state = state,
+            eventDispatcher = eventDispatcher,
+            xdmEventBuilder = xdmEventBuilder,
+            metricsBuilder = metricsBuilder,
+            featurizationCoordinator = featurizationCoordinator
+        )
+    }
+
     private fun createEventDispatcher(): EventDispatcher {
         return EdgeEventDispatcher(extensionApi)
     }
@@ -156,7 +235,7 @@ internal class ContentAnalyticsFactory(
         
         val serviceUrl = config.getFeaturizationBaseUrl()
         if (serviceUrl == null) {
-            Log.warning(TAG, TAG, "❌ Cannot determine featurization URL - Edge domain not configured")
+            Log.warning(TAG, TAG, "Cannot determine featurization URL - Edge domain not configured")
             return null
         }
         
@@ -171,7 +250,7 @@ internal class ContentAnalyticsFactory(
         val hitQueue = PersistentHitQueue(dataQueue, hitProcessor)
         hitQueue.beginProcessing()
         
-        Log.debug(TAG, TAG, "✅ Featurization hit queue created")
+        Log.debug(TAG, TAG, "Featurization hit queue created")
         
         return hitQueue
     }

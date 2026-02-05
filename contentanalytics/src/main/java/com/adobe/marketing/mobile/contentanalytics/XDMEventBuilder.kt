@@ -18,24 +18,54 @@ package com.adobe.marketing.mobile.contentanalytics
 internal object XDMEventBuilder {
     
     /**
+     * Safely extracts a string-keyed map from Any, returning null if not a valid map.
+     */
+    private fun extractStringKeyedMap(value: Any?): Map<String, Any?>? {
+        val rawMap = value as? Map<*, *> ?: return null
+        val result = mutableMapOf<String, Any?>()
+        for ((key, mapValue) in rawMap) {
+            val stringKey = key as? String ?: continue
+            result[stringKey] = mapValue
+        }
+        return result
+    }
+    
+    /**
+     * Converts a value to its string representation for XDM schema compliance.
+     */
+    private fun stringifyValue(value: Any?): String? {
+        return when (value) {
+            null -> null
+            is String -> value
+            is Map<*, *> -> {
+                try {
+                    org.json.JSONObject(value).toString()
+                } catch (e: Exception) {
+                    value.toString()
+                }
+            }
+            is List<*> -> {
+                try {
+                    org.json.JSONArray(value).toString()
+                } catch (e: Exception) {
+                    value.toString()
+                }
+            }
+            else -> value.toString()
+        }
+    }
+    
+    /**
      * Converts all values in a map to strings for XDM schema compliance.
      * The global XDM schema requires meta:xdmType on all fields - using strings ensures compliance.
+     * Null values are filtered out to avoid invalid XDM data.
      */
-    private fun stringifyExtras(extras: Map<String, Any>): Map<String, String> {
-        return extras.mapValues { (_, value) ->
-            when (value) {
-                is String -> value
-                is Map<*, *>, is List<*> -> {
-                    // Complex types become JSON strings
-                    try {
-                        org.json.JSONObject(value as? Map<*, *> ?: mapOf<String, Any>()).toString()
-                    } catch (e: Exception) {
-                        value.toString()
-                    }
-                }
-                else -> value.toString() // Primitives (Int, Double, Bool)
-            }
+    private fun stringifyExtras(extras: Map<String, Any?>): Map<String, String> {
+        val result = mutableMapOf<String, String>()
+        for ((key, value) in extras) {
+            stringifyValue(value)?.let { result[key] = it }
         }
+        return result
     }
     
     /**
@@ -80,7 +110,7 @@ internal object XDMEventBuilder {
         }
         
         // Stringify experienceExtras for XDM schema compliance
-        (metrics["experienceExtras"] as? Map<String, Any>)?.let {
+        extractStringKeyedMap(metrics["experienceExtras"])?.let {
             interactionData["experienceExtras"] = stringifyExtras(it)
         }
         
@@ -160,7 +190,7 @@ internal object XDMEventBuilder {
         }
         
         // Stringify assetExtras for XDM schema compliance
-        (metrics["assetExtras"] as? Map<String, Any>)?.let {
+        extractStringKeyedMap(metrics["assetExtras"])?.let {
             assetData["assetExtras"] = stringifyExtras(it)
         }
         

@@ -47,7 +47,7 @@ internal class FeaturizationCoordinator(
             hitQueue = queue
             
             if (hitQueue != null) {
-                Log.debug(TAG, TAG, "✅ Featurization queue ready")
+                Log.debug(TAG, TAG, "Featurization queue ready")
             } else {
                 Log.debug(TAG, TAG, "Featurization queue not yet available (waiting for valid configuration)")
             }
@@ -82,31 +82,31 @@ internal class FeaturizationCoordinator(
     /** Checks consent, config, and experience definition before featurization */
     private fun validatePrerequisites(experienceId: String): FeaturizationPrerequisites? {
         if (!privacyValidator.isDataCollectionAllowed()) {
-            Log.debug(TAG, TAG, "❌ Consent denied")
+            Log.debug(TAG, TAG, "Consent denied")
             return null
         }
         
-        Log.debug(TAG, TAG, "✅ Consent OK")
+        Log.debug(TAG, TAG, "Consent OK")
         
         val config = state.configuration
         if (config == null) {
-            Log.debug(TAG, TAG, "❌ No config")
+            Log.debug(TAG, TAG, "No config")
             return null
         }
         
         val serviceUrl = config.getFeaturizationBaseUrl()
         if (serviceUrl.isNullOrEmpty()) {
-            Log.debug(TAG, TAG, "❌ Missing URL (edgeDomain=${config.edgeDomain}, region=${config.region})")
+            Log.debug(TAG, TAG, "Missing URL (edgeDomain=${config.edgeDomain}, region=${config.region})")
             return null
         }
         
         val imsOrg = config.experienceCloudOrgId
         if (imsOrg.isNullOrEmpty()) {
-            Log.debug(TAG, TAG, "❌ Missing IMS org")
+            Log.debug(TAG, TAG, "Missing IMS org")
             return null
         }
         
-        Log.debug(TAG, TAG, "✅ Config OK (url=$serviceUrl, org=$imsOrg)")
+        Log.debug(TAG, TAG, "Config OK (url=$serviceUrl, org=$imsOrg)")
         
         val definition = state.getExperienceDefinition(experienceId)
         if (definition == null) {
@@ -114,7 +114,7 @@ internal class FeaturizationCoordinator(
             return null
         }
         
-        Log.trace(TAG, TAG, "✅ Definition found (id=$experienceId, assets=${definition.assets.size})")
+        Log.trace(TAG, TAG, "Definition found (id=$experienceId, assets=${definition.assets.size})")
         
         return FeaturizationPrerequisites(config, imsOrg, definition)
     }
@@ -144,7 +144,7 @@ internal class FeaturizationCoordinator(
         
         val datastreamId = config.datastreamId
         if (datastreamId.isNullOrEmpty()) {
-            Log.error(TAG, TAG, "❌ Cannot send to featurization - datastreamId not configured")
+            Log.error(TAG, TAG, "Cannot send to featurization - datastreamId not configured")
             return null
         }
         
@@ -176,25 +176,25 @@ internal class FeaturizationCoordinator(
         val hitJson = try {
             hit.toJson()
         } catch (e: Exception) {
-            Log.error(TAG, TAG, "❌ Failed to encode featurization hit | ExperienceID: $experienceId")
+            Log.error(TAG, TAG, "Failed to encode featurization hit | ExperienceID: $experienceId")
             return false
         }
         
-        Log.debug(TAG, TAG, "✅ Hit encoded | Size: ${hitJson.length} bytes")
+        Log.debug(TAG, TAG, "Hit encoded | Size: ${hitJson.length} bytes")
         
         val dataEntity = DataEntity(hitJson)
         
         val queue = hitQueue
         if (queue == null) {
-            Log.error(TAG, TAG, "❌ Featurization queue is nil - cannot queue hit | ID: $experienceId")
+            Log.error(TAG, TAG, "Featurization queue is nil - cannot queue hit | ID: $experienceId")
             return false
         }
         
         return if (queue.queue(dataEntity)) {
-            Log.debug(TAG, TAG, "✅ Experience queued for featurization | ID: $experienceId")
+            Log.debug(TAG, TAG, "Experience queued for featurization | ID: $experienceId")
             true
         } else {
-            Log.error(TAG, TAG, "❌ Failed to queue experience | ID: $experienceId")
+            Log.error(TAG, TAG, "Failed to queue experience | ID: $experienceId")
             false
         }
     }

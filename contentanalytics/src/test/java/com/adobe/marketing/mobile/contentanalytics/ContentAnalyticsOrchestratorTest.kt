@@ -22,29 +22,46 @@ import org.mockito.kotlin.*
 class ContentAnalyticsOrchestratorTest {
     
     private lateinit var state: ContentAnalyticsStateManager
-    private lateinit var eventDispatcher: EventDispatcher
-    private lateinit var privacyValidator: PrivacyValidator
-    private lateinit var xdmEventBuilder: XDMEventBuilder
+    private lateinit var eventValidator: EventValidating
+    private lateinit var eventExclusionFilter: EventExclusionFiltering
+    private lateinit var assetEventProcessor: AssetEventProcessing
+    private lateinit var experienceEventProcessor: ExperienceEventProcessing
+    private lateinit var featurizationCoordinator: FeaturizationCoordinator
     private lateinit var batchCoordinator: BatchCoordinator
     private lateinit var orchestrator: ContentAnalyticsOrchestrator
     
     @Before
     fun setup() {
         state = ContentAnalyticsStateManager()
-        eventDispatcher = mock()
-        privacyValidator = mock()
-        xdmEventBuilder = XDMEventBuilder
+        eventValidator = mock()
+        eventExclusionFilter = mock()
+        assetEventProcessor = mock()
+        experienceEventProcessor = mock()
         batchCoordinator = mock()
         
-        val featurizationCoordinator = FeaturizationCoordinator(state, privacyValidator)
+        val privacyValidator = mock<PrivacyValidator>()
+        whenever(privacyValidator.isDataCollectionAllowed()).thenReturn(true)
+        featurizationCoordinator = FeaturizationCoordinator(state, privacyValidator)
+        
+        // Default: validation passes
+        whenever(eventValidator.validateAssetEvent(any())).thenReturn(ValidationResult(true))
+        whenever(eventValidator.validateExperienceEvent(any())).thenReturn(ValidationResult(true))
+        whenever(eventValidator.validateProcessingConditions()).thenReturn(null)
+        whenever(eventValidator.isExperienceTrackingEnabled()).thenReturn(true)
+        
+        // Default: no exclusions
+        whenever(eventExclusionFilter.shouldExcludeAsset(any())).thenReturn(false)
+        whenever(eventExclusionFilter.shouldExcludeExperience(any())).thenReturn(false)
         
         orchestrator = ContentAnalyticsOrchestrator(
-            state, eventDispatcher, privacyValidator, 
-            xdmEventBuilder, featurizationCoordinator, batchCoordinator
+            state = state,
+            eventValidator = eventValidator,
+            eventExclusionFilter = eventExclusionFilter,
+            assetEventProcessor = assetEventProcessor,
+            experienceEventProcessor = experienceEventProcessor,
+            featurizationCoordinator = featurizationCoordinator,
+            batchCoordinator = batchCoordinator
         )
-        
-        // Default: allow data collection
-        whenever(privacyValidator.isDataCollectionAllowed()).thenReturn(true)
     }
     
     @Test
@@ -71,16 +88,14 @@ class ContentAnalyticsOrchestratorTest {
     @Test
     fun `test processAssetEvent filtered by URL pattern`() {
         // Given
-        val config = ContentAnalyticsConfiguration(
-            excludedAssetUrlsRegexp = ".*\\.gif$"
-        )
-        state.updateConfiguration(config)
-        
         val event = createAssetEvent(
             "https://example.com/image.gif",
             "homepage",
             ContentAnalyticsConstants.ActionType.VIEW
         )
+        
+        // Configure filter to exclude this event
+        whenever(eventExclusionFilter.shouldExcludeAsset(event)).thenReturn(true)
         
         // When
         orchestrator.processAssetEvent(event)
@@ -92,16 +107,14 @@ class ContentAnalyticsOrchestratorTest {
     @Test
     fun `test processAssetEvent filtered by location`() {
         // Given
-        val config = ContentAnalyticsConfiguration(
-            excludedAssetLocationsRegexp = "^(debug|test)$"
-        )
-        state.updateConfiguration(config)
-        
         val event = createAssetEvent(
             "https://example.com/image.jpg",
             "debug",
             ContentAnalyticsConstants.ActionType.VIEW
         )
+        
+        // Configure filter to exclude this event
+        whenever(eventExclusionFilter.shouldExcludeAsset(event)).thenReturn(true)
         
         // When
         orchestrator.processAssetEvent(event)
@@ -143,9 +156,8 @@ class ContentAnalyticsOrchestratorTest {
     
     @Test
     fun `test processExperienceEvent disabled in config`() {
-        // Given
-        val config = ContentAnalyticsConfiguration(trackExperiences = false)
-        state.updateConfiguration(config)
+        // Given - experience tracking disabled
+        whenever(eventValidator.isExperienceTrackingEnabled()).thenReturn(false)
         
         val event = createExperienceEvent(
             "test-exp",

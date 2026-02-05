@@ -14,10 +14,16 @@ package com.adobe.marketing.mobile.contentanalytics.helpers
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventType
+import com.adobe.marketing.mobile.contentanalytics.AssetEventProcessor
+import com.adobe.marketing.mobile.contentanalytics.ContentAnalyticsConfiguration
 import com.adobe.marketing.mobile.contentanalytics.ContentAnalyticsOrchestrator
 import com.adobe.marketing.mobile.contentanalytics.ContentAnalyticsStateManager
 import com.adobe.marketing.mobile.contentanalytics.EventDispatcher
+import com.adobe.marketing.mobile.contentanalytics.EventExclusionFilter
+import com.adobe.marketing.mobile.contentanalytics.EventValidator
+import com.adobe.marketing.mobile.contentanalytics.ExperienceEventProcessor
 import com.adobe.marketing.mobile.contentanalytics.FeaturizationCoordinator
+import com.adobe.marketing.mobile.contentanalytics.MetricsBuilder
 import com.adobe.marketing.mobile.contentanalytics.PrivacyValidator
 import com.adobe.marketing.mobile.contentanalytics.XDMEventBuilder
 import org.junit.Before
@@ -41,13 +47,37 @@ internal abstract class ContentAnalyticsTestBase {
         privacyValidator = ContentAnalyticsMocks.createMockPrivacyValidator(allowDataCollection = true)
         state = ContentAnalyticsStateManager()
         
+        // Set default configuration for tests
+        state.updateConfiguration(ContentAnalyticsConfiguration())
+        
         val featurizationCoordinator = FeaturizationCoordinator(state, privacyValidator)
+        
+        // Create processing components
+        val eventValidator = EventValidator(state)
+        val eventExclusionFilter = EventExclusionFilter(state)
+        val metricsBuilder = MetricsBuilder(state)
+        
+        val assetEventProcessor = AssetEventProcessor(
+            state = state,
+            eventDispatcher = eventDispatcher,
+            xdmEventBuilder = XDMEventBuilder,
+            metricsBuilder = metricsBuilder
+        )
+        
+        val experienceEventProcessor = ExperienceEventProcessor(
+            state = state,
+            eventDispatcher = eventDispatcher,
+            xdmEventBuilder = XDMEventBuilder,
+            metricsBuilder = metricsBuilder,
+            featurizationCoordinator = featurizationCoordinator
+        )
         
         orchestrator = ContentAnalyticsOrchestrator(
             state = state,
-            eventDispatcher = eventDispatcher,
-            privacyValidator = privacyValidator,
-            xdmEventBuilder = XDMEventBuilder,
+            eventValidator = eventValidator,
+            eventExclusionFilter = eventExclusionFilter,
+            assetEventProcessor = assetEventProcessor,
+            experienceEventProcessor = experienceEventProcessor,
             featurizationCoordinator = featurizationCoordinator,
             batchCoordinator = null
         )
@@ -103,4 +133,3 @@ internal abstract class ContentAnalyticsTestBase {
         return false
     }
 }
-

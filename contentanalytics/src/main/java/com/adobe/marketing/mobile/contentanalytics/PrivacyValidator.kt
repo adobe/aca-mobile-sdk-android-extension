@@ -97,7 +97,7 @@ internal class ContentAnalyticsPrivacyValidator(
         
         isCacheInitialized = true
         
-        Log.trace(TAG, TAG, "🔄 Shared state cache updated - Consent registered: $cachedIsConsentRegistered")
+        Log.trace(TAG, TAG, "Shared state cache updated - Consent registered: $cachedIsConsentRegistered")
     }
     
     override fun isDataCollectionAllowed(): Boolean {
@@ -111,7 +111,7 @@ internal class ContentAnalyticsPrivacyValidator(
             
             // Check if Hub shared state is available
             if (cachedHubData == null) {
-                Log.debug(TAG, TAG, "⏸️ No Hub shared state available, blocking data collection (waiting for SDK init)")
+                Log.debug(TAG, TAG, "No Hub shared state available, blocking data collection (waiting for SDK init)")
                 return false
             }
             
@@ -120,7 +120,7 @@ internal class ContentAnalyticsPrivacyValidator(
             if (cachedIsConsentRegistered) {
                 // Consent is registered - check its shared state
                 if (cachedConsentData == null) {
-                    Log.debug(TAG, TAG, "⏸️ Consent extension registered but no shared state yet - assuming pending, blocking data collection")
+                    Log.debug(TAG, TAG, "Consent extension registered but no shared state yet - assuming pending, blocking data collection")
                     return false
                 }
                 
@@ -133,7 +133,7 @@ internal class ContentAnalyticsPrivacyValidator(
                 
                 val allowed = when (value?.lowercase()) {
                     "y", "yes" -> {
-                        Log.debug(TAG, TAG, "✅ Data collection allowed - consent granted")
+                        Log.debug(TAG, TAG, "Data collection allowed - consent granted")
                         true
                     }
                     "n", "no" -> {
@@ -141,15 +141,15 @@ internal class ContentAnalyticsPrivacyValidator(
                         false
                     }
                     "p", "pending" -> {
-                        Log.debug(TAG, TAG, "⏸️ Data collection blocked - consent pending")
+                        Log.debug(TAG, TAG, "Data collection blocked - consent pending")
                         false
                     }
                     null -> {
-                        Log.debug(TAG, TAG, "⏸️ Data collection blocked - malformed consent data")
+                        Log.debug(TAG, TAG, "Data collection blocked - malformed consent data")
                         false
                     }
                     else -> {
-                        Log.debug(TAG, TAG, "⏸️ Data collection blocked - unrecognized consent value: $value")
+                        Log.debug(TAG, TAG, "Data collection blocked - unrecognized consent value: $value")
                         false
                     }
                 }
@@ -157,7 +157,7 @@ internal class ContentAnalyticsPrivacyValidator(
                 return allowed
             } else {
                 // Consent is not registered - assume yes
-                Log.debug(TAG, TAG, "✅ Data collection allowed - Consent extension not registered, assuming yes")
+                Log.debug(TAG, TAG, "Data collection allowed - Consent extension not registered, assuming yes")
                 return true
             }
         }
