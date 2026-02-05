@@ -97,7 +97,7 @@ internal class FeaturizationHitProcessor(
         // Validate datastreamId is present (required field)
         val datastreamId = hit.content.datastreamId
         if (datastreamId.isEmpty()) {
-            Log.error(TAG, TAG, "❌ Cannot check experience - datastreamId is empty | ID: ${hit.experienceId}")
+            Log.error(TAG, TAG, "Cannot check experience - datastreamId is empty | ID: ${hit.experienceId}")
             completion(true) // Drop hit - configuration error, won't be fixed by retrying
             return
         }
@@ -138,7 +138,7 @@ internal class FeaturizationHitProcessor(
         // Validate datastreamId is present (required field)
         val datastreamId = hit.content.datastreamId
         if (datastreamId.isEmpty()) {
-            Log.error(TAG, TAG, "❌ Cannot register experience - datastreamId is empty | ID: ${hit.experienceId}")
+            Log.error(TAG, TAG, "Cannot register experience - datastreamId is empty | ID: ${hit.experienceId}")
             completion(true) // Drop hit - configuration error, won't be fixed by retrying
             return
         }
@@ -152,7 +152,7 @@ internal class FeaturizationHitProcessor(
             when {
                 result.isSuccess -> {
                     // Registration successful
-                    Log.debug(TAG, TAG, "✅ Featurization sent (id=${hit.experienceId})")
+                    Log.debug(TAG, TAG, "Featurization sent (id=${hit.experienceId})")
                     entityRetryIntervalMapping.remove(entityId)
                     completion(true) // Remove from queue
                 }

@@ -51,20 +51,26 @@ class ContentAnalyticsEndToEndTest {
         
         state = ContentAnalyticsStateManager()
         
-        // Create orchestrator WITHOUT BatchCoordinator (immediate mode)
+        // Create real components for E2E testing
+        val eventValidator = EventValidator(state)
+        val eventExclusionFilter = EventExclusionFilter(state)
+        val metricsBuilder = MetricsBuilder(state)
         val featurizationCoordinator = FeaturizationCoordinator(state, privacyValidator)
+        val assetEventProcessor = AssetEventProcessor(state, eventDispatcher, XDMEventBuilder, metricsBuilder)
+        val experienceEventProcessor = ExperienceEventProcessor(state, eventDispatcher, XDMEventBuilder, metricsBuilder, featurizationCoordinator)
         
         orchestrator = ContentAnalyticsOrchestrator(
             state = state,
-            eventDispatcher = eventDispatcher,
-            privacyValidator = privacyValidator,
-            xdmEventBuilder = XDMEventBuilder,
+            eventValidator = eventValidator,
+            eventExclusionFilter = eventExclusionFilter,
+            assetEventProcessor = assetEventProcessor,
+            experienceEventProcessor = experienceEventProcessor,
             featurizationCoordinator = featurizationCoordinator,
             batchCoordinator = null  // No batching for E2E tests
         )
         
-        // Configure with batching OFF
-        val config = ContentAnalyticsConfiguration(batchingEnabled = false)
+        // Configure with batching OFF and experience tracking ON
+        val config = ContentAnalyticsConfiguration(batchingEnabled = false, trackExperiences = true)
         state.updateConfiguration(config)
     }
     

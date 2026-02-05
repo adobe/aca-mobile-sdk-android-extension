@@ -229,14 +229,20 @@ class ContentAnalyticsFactoryTest {
         val config = TestDataBuilder.buildConfiguration(batchingEnabled = false)
         stateManager.updateConfiguration(config)
         
-        // When - Create orchestrator and send multiple events
+        // When - Create orchestrator with real components
+        val eventValidator = EventValidator(stateManager)
+        val eventExclusionFilter = EventExclusionFilter(stateManager)
+        val metricsBuilder = MetricsBuilder(stateManager)
         val featurizationCoordinator = FeaturizationCoordinator(stateManager, mockPrivacyValidator)
+        val assetEventProcessor = AssetEventProcessor(stateManager, mockDispatcher, XDMEventBuilder, metricsBuilder)
+        val experienceEventProcessor = ExperienceEventProcessor(stateManager, mockDispatcher, XDMEventBuilder, metricsBuilder, featurizationCoordinator)
         
         val orchestrator = ContentAnalyticsOrchestrator(
             state = stateManager,
-            eventDispatcher = mockDispatcher,
-            privacyValidator = mockPrivacyValidator,
-            xdmEventBuilder = XDMEventBuilder,
+            eventValidator = eventValidator,
+            eventExclusionFilter = eventExclusionFilter,
+            assetEventProcessor = assetEventProcessor,
+            experienceEventProcessor = experienceEventProcessor,
             featurizationCoordinator = featurizationCoordinator,
             batchCoordinator = null
         )

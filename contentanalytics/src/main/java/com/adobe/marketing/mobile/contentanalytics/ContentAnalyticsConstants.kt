@@ -116,6 +116,11 @@ internal object ContentAnalyticsConstants {
         const val BATCH_PROCESSOR = "ContentAnalytics.BatchCoordinator"
         const val PRIVACY_VALIDATOR = "ContentAnalytics.PrivacyValidator"
         const val CONFIG = "ContentAnalytics.Config"
+        const val EVENT_VALIDATOR = "ContentAnalytics.EventValidator"
+        const val EXCLUSION_FILTER = "ContentAnalytics.ExclusionFilter"
+        const val METRICS_BUILDER = "ContentAnalytics.MetricsBuilder"
+        const val ASSET_PROCESSOR = "ContentAnalytics.AssetProcessor"
+        const val EXPERIENCE_PROCESSOR = "ContentAnalytics.ExperienceProcessor"
     }
     
     // External extension names used by ContentAnalytics
