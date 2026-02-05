@@ -111,9 +111,15 @@ internal object XDMEventBuilder {
         return createBaseXDMEvent(experienceContent)
     }
     private fun createBaseXDMEvent(experienceContent: Map<String, Any>): Map<String, Any> {
+        // Add channel and idSource inside experienceContent per schema
+        val fullExperienceContent = experienceContent.toMutableMap().apply {
+            put("channel", "mobile")
+            put("idSource", "ContentAnalytics")
+        }
+        
         return mapOf(
             "eventType" to ContentAnalyticsConstants.EventType.XDM_CONTENT_ENGAGEMENT,
-            "experienceContent" to experienceContent
+            "experienceContent" to fullExperienceContent
         )
     }
     
