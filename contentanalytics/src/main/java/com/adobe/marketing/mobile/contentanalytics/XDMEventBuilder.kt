@@ -18,6 +18,27 @@ package com.adobe.marketing.mobile.contentanalytics
 internal object XDMEventBuilder {
     
     /**
+     * Converts all values in a map to strings for XDM schema compliance.
+     * The global XDM schema requires meta:xdmType on all fields - using strings ensures compliance.
+     */
+    private fun stringifyExtras(extras: Map<String, Any>): Map<String, String> {
+        return extras.mapValues { (_, value) ->
+            when (value) {
+                is String -> value
+                is Map<*, *>, is List<*> -> {
+                    // Complex types become JSON strings
+                    try {
+                        org.json.JSONObject(value as? Map<*, *> ?: mapOf<String, Any>()).toString()
+                    } catch (e: Exception) {
+                        value.toString()
+                    }
+                }
+                else -> value.toString() // Primitives (Int, Double, Bool)
+            }
+        }
+    }
+    
+    /**
      * Build XDM payload for asset interaction events.
      */
     fun buildAssetInteractionXDM(
@@ -58,8 +79,9 @@ internal object XDMEventBuilder {
             interactionData["experienceClicks"] = mapOf("value" to it)
         }
         
+        // Stringify experienceExtras for XDM schema compliance
         (metrics["experienceExtras"] as? Map<String, Any>)?.let {
-            interactionData["experienceExtras"] = it
+            interactionData["experienceExtras"] = stringifyExtras(it)
         }
         
         // Build asset attribution array (zero metrics since assets are tracked separately)
@@ -131,8 +153,9 @@ internal object XDMEventBuilder {
             assetData["assetSource"] = assetLocation
         }
         
+        // Stringify assetExtras for XDM schema compliance
         (metrics["assetExtras"] as? Map<String, Any>)?.let {
-            assetData["assetExtras"] = it
+            assetData["assetExtras"] = stringifyExtras(it)
         }
         
         return assetData

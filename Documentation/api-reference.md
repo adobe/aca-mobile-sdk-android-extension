@@ -23,7 +23,9 @@ fun trackAsset(
 - `assetURL`: Asset URL being tracked
 - `interactionType`: `InteractionType.VIEW` or `InteractionType.CLICK` (default: `VIEW`)
 - `assetLocation`: Optional semantic location (e.g., "home.hero", "product.gallery")
-- `additionalData`: Optional custom data
+- `additionalData`: Optional custom data (values are stringified for XDM schema compliance)
+
+> **Note:** All `additionalData` values are converted to strings before being sent to AEP. You can pass any type (String, Int, Double, Boolean, nested objects), but they will be stringified in the XDM payload.
 
 **Example:**
 ```kotlin
