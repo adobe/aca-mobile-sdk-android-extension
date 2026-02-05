@@ -340,7 +340,6 @@ Managed through Adobe Data Collection (Launch):
 | `contentanalytics.excludedAssetLocationsRegexp` | String | - | Asset location regex pattern to exclude |
 | `contentanalytics.excludedAssetUrlsRegexp` | String | - | Asset URL regex pattern to exclude |
 | `contentanalytics.excludedExperienceLocationsRegexp` | String | - | Experience location regex pattern |
-| `contentanalytics.region` | String | - | Org's home region (e.g., "va7", "irl1") |
 
 ---
 

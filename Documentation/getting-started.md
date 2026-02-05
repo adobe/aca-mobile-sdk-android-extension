@@ -148,16 +148,6 @@ Route Content Analytics events to a separate datastream:
 }
 ```
 
-### ML Featurization
-
-Send experience definitions to a featurization service:
-
-```json
-{
-  "contentanalytics.featurizationServiceUrl": "https://your-ml-service.example.com"
-}
-```
-
 ## Example: RecyclerView Tracking
 
 ```kotlin

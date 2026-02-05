@@ -180,16 +180,7 @@ Featurization requires:
 }
 ```
 
-### Check 2: Region Detection
-
-Verify region is being detected:
-
-```kotlin
-// Look for logs like:
-// "Featurization URL | Domain: edge.adobedc.net | Region: va7"
-```
-
-### Check 3: Consent
+### Check 2: Consent
 
 Featurization requires explicit consent:
 
