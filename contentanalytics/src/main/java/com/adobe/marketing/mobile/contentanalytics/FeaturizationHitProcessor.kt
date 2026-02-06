@@ -28,7 +28,8 @@ internal class FeaturizationHitProcessor(
 ) : HitProcessor {
     
     companion object {
-        private const val TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val LOG_TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val TAG = "FeaturizationHitProcessor"
         
         /**
          * HTTP error codes that should trigger a retry.
@@ -61,12 +62,12 @@ internal class FeaturizationHitProcessor(
     private fun processHitInternal(entity: DataEntity, completion: (Boolean) -> Unit) {
         val hit = decodeFeaturizationHit(entity)
         if (hit == null) {
-            Log.warning(TAG, TAG, "Failed to decode featurization hit | Entity: ${entity.uniqueIdentifier} - dropping")
+            Log.warning(LOG_TAG, TAG, "Failed to decode featurization hit | Entity: ${entity.uniqueIdentifier} - dropping")
             completion(true)
             return
         }
         
-        Log.debug(TAG, TAG, "Processing featurization hit | ExperienceID: ${hit.experienceId} | Attempt: ${hit.attemptCount + 1}")
+        Log.debug(LOG_TAG, TAG, "Processing featurization hit | ExperienceID: ${hit.experienceId} | Attempt: ${hit.attemptCount + 1}")
         
         // Check if experience already exists
         checkAndRegisterExperience(hit, entity.uniqueIdentifier, completion)
@@ -81,7 +82,7 @@ internal class FeaturizationHitProcessor(
             val json = entity.data ?: return null
             FeaturizationHit.fromJson(json)
         } catch (e: Exception) {
-            Log.warning(TAG, TAG, "Exception decoding featurization hit: ${e.message}")
+            Log.warning(LOG_TAG, TAG, "Exception decoding featurization hit: ${e.message}")
             null
         }
     }
@@ -97,7 +98,7 @@ internal class FeaturizationHitProcessor(
         // Validate datastreamId is present (required field)
         val datastreamId = hit.content.datastreamId
         if (datastreamId.isEmpty()) {
-            Log.error(TAG, TAG, "Cannot check experience - datastreamId is empty | ID: ${hit.experienceId}")
+            Log.error(LOG_TAG, TAG, "Cannot check experience - datastreamId is empty | ID: ${hit.experienceId}")
             completion(true) // Drop hit - configuration error, won't be fixed by retrying
             return
         }
@@ -113,12 +114,12 @@ internal class FeaturizationHitProcessor(
                     val exists = result.getOrNull() ?: false
                     if (exists) {
                         // Experience already featurized - success!
-                        Log.debug(TAG, TAG, "Experience already featurized | ID: ${hit.experienceId}")
+                        Log.debug(LOG_TAG, TAG, "Experience already featurized | ID: ${hit.experienceId}")
                         entityRetryIntervalMapping.remove(entityId)
                         completion(true) // Remove from queue
                     } else {
                         // Experience not featurized - register it
-                        Log.debug(TAG, TAG, "Experience not featurized, registering | ID: ${hit.experienceId}")
+                        Log.debug(LOG_TAG, TAG, "Experience not featurized, registering | ID: ${hit.experienceId}")
                         registerExperience(hit, entityId, completion)
                     }
                 }
@@ -138,7 +139,7 @@ internal class FeaturizationHitProcessor(
         // Validate datastreamId is present (required field)
         val datastreamId = hit.content.datastreamId
         if (datastreamId.isEmpty()) {
-            Log.error(TAG, TAG, "Cannot register experience - datastreamId is empty | ID: ${hit.experienceId}")
+            Log.error(LOG_TAG, TAG, "Cannot register experience - datastreamId is empty | ID: ${hit.experienceId}")
             completion(true) // Drop hit - configuration error, won't be fixed by retrying
             return
         }
@@ -152,7 +153,7 @@ internal class FeaturizationHitProcessor(
             when {
                 result.isSuccess -> {
                     // Registration successful
-                    Log.debug(TAG, TAG, "Featurization sent (id=${hit.experienceId})")
+                    Log.debug(LOG_TAG, TAG, "Featurization sent (id=${hit.experienceId})")
                     entityRetryIntervalMapping.remove(entityId)
                     completion(true) // Remove from queue
                 }
@@ -170,7 +171,7 @@ internal class FeaturizationHitProcessor(
                 val statusCode = error.statusCode
                 // Special case: 404 on check means experience not featurized yet - register it
                 if (statusCode == 404) {
-                    Log.debug(TAG, TAG, "404 response - registering experience | ID: ${hit.experienceId}")
+                    Log.debug(LOG_TAG, TAG, "404 response - registering experience | ID: ${hit.experienceId}")
                     registerExperience(hit, entityId, completion)
                     return
                 }
@@ -225,9 +226,9 @@ internal class FeaturizationHitProcessor(
         val retryInterval = calculateRetryInterval(hit.attemptCount)
         
         if (statusCode != null) {
-            Log.warning(TAG, TAG, "Recoverable error $operation ($statusCode) | ID: ${hit.experienceId} | Retry in: ${retryInterval}s")
+            Log.warning(LOG_TAG, TAG, "Recoverable error $operation ($statusCode) | ID: ${hit.experienceId} | Retry in: ${retryInterval}s")
         } else if (error != null) {
-            Log.warning(TAG, TAG, "Network error $operation | ID: ${hit.experienceId} | Error: $error | Retry in: ${retryInterval}s")
+            Log.warning(LOG_TAG, TAG, "Network error $operation | ID: ${hit.experienceId} | Error: $error | Retry in: ${retryInterval}s")
         }
         
         entityRetryIntervalMapping[entityId] = retryInterval
@@ -244,7 +245,7 @@ internal class FeaturizationHitProcessor(
         operation: String,
         completion: (Boolean) -> Unit
     ) {
-        Log.warning(TAG, TAG, "Unrecoverable HTTP error $operation ($statusCode) | ID: $experienceId - dropping")
+        Log.warning(LOG_TAG, TAG, "Unrecoverable HTTP error $operation ($statusCode) | ID: $experienceId - dropping")
         entityRetryIntervalMapping.remove(entityId)
         completion(true) // Remove from queue
     }

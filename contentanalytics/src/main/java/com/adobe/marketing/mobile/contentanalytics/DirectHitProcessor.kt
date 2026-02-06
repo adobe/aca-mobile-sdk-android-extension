@@ -26,7 +26,8 @@ internal class DirectHitProcessor(
 ) : HitProcessor {
     
     companion object {
-        private const val TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val LOG_TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val TAG = "DirectHitProcessor"
     }
     
     private val accumulatedEvents = mutableListOf<Event>()
@@ -42,7 +43,7 @@ internal class DirectHitProcessor(
         mutex.withLock {
             accumulatedEvents.add(event)
             accumulatedEventIds.add(event.uniqueIdentifier)
-            Log.trace(TAG, TAG, "Accumulated $type event | ID: ${event.uniqueIdentifier} | Total: ${accumulatedEvents.size}")
+            Log.trace(LOG_TAG, TAG, "Accumulated $type event | ID: ${event.uniqueIdentifier} | Total: ${accumulatedEvents.size}")
         }
     }
     
@@ -56,7 +57,7 @@ internal class DirectHitProcessor(
             val event = DataEntityHelper.toEvent(entity)
             
             if (event == null) {
-                Log.warning(TAG, TAG, "Failed to decode event | Type: $type | ID: ${entity.uniqueIdentifier}")
+                Log.warning(LOG_TAG, TAG, "Failed to decode event | Type: $type | ID: ${entity.uniqueIdentifier}")
                 return@withLock true  // Remove corrupted data
             }
             
@@ -66,7 +67,7 @@ internal class DirectHitProcessor(
             if (!accumulatedEventIds.contains(eventId)) {
                 accumulatedEvents.add(event)
                 accumulatedEventIds.add(eventId)
-                Log.trace(TAG, TAG, "Recovered event from disk | Type: $type | ID: $eventId")
+                Log.trace(LOG_TAG, TAG, "Recovered event from disk | Type: $type | ID: $eventId")
             }
             
             // Return true to clear from disk - we've accumulated it in memory
@@ -81,7 +82,7 @@ internal class DirectHitProcessor(
                 return@withLock emptyList<Event>()
             }
             
-            Log.debug(TAG, TAG, "Processing ${accumulatedEvents.size} accumulated $type events")
+            Log.debug(LOG_TAG, TAG, "Processing ${accumulatedEvents.size} accumulated $type events")
             
             val events = accumulatedEvents.toList()
             accumulatedEvents.clear()

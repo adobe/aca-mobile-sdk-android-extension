@@ -26,36 +26,35 @@ internal class ContentAnalyticsFactory(
 ) {
     
     companion object {
-        private const val TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val LOG_TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val TAG = "ContentAnalyticsFactory"
     }
     
     private var batchCoordinator: BatchCoordinator? = null
-    private var privacyValidator: ContentAnalyticsPrivacyValidator? = null
+    private lateinit var privacyValidator: ContentAnalyticsPrivacyValidator
     
     
     /**
      * Create the complete orchestrator with all dependencies
      */
     fun createContentAnalyticsOrchestrator(): ContentAnalyticsOrchestrator {
-        // Create helper components
         val eventDispatcher = createEventDispatcher()
         privacyValidator = createPrivacyValidator()
         val xdmEventBuilder = createXDMEventBuilder()
         batchCoordinator = createBatchCoordinator()
+
         val featurizationCoordinator = createFeaturizationCoordinator()
-        
-        // Create processing components
-        val eventValidator = createEventValidator()
-        val eventExclusionFilter = createEventExclusionFilter()
-        val metricsBuilder = createMetricsBuilder()
-        
+
+        val eventValidator = EventValidator(state)
+        val eventExclusionFilter = EventExclusionFilter(state)
+        val metricsBuilder = MetricsBuilder(state)
+
         val assetEventProcessor = AssetEventProcessor(
             state = state,
             eventDispatcher = eventDispatcher,
             xdmEventBuilder = xdmEventBuilder,
             metricsBuilder = metricsBuilder
         )
-        
         val experienceEventProcessor = ExperienceEventProcessor(
             state = state,
             eventDispatcher = eventDispatcher,
@@ -63,8 +62,7 @@ internal class ContentAnalyticsFactory(
             metricsBuilder = metricsBuilder,
             featurizationCoordinator = featurizationCoordinator
         )
-        
-        // Create orchestrator with all dependencies
+
         val orchestrator = ContentAnalyticsOrchestrator(
             state = state,
             eventValidator = eventValidator,
@@ -74,7 +72,7 @@ internal class ContentAnalyticsFactory(
             featurizationCoordinator = featurizationCoordinator,
             batchCoordinator = batchCoordinator
         )
-        
+
         batchCoordinator?.setCallbacks(
             assetCallback = { events ->
                 orchestrator.handleAssetBatchFlush(events)
@@ -83,14 +81,14 @@ internal class ContentAnalyticsFactory(
                 orchestrator.handleExperienceBatchFlush(events)
             }
         )
-        
-        Log.debug(TAG, TAG, "Orchestrator ready")
-        
+
+        Log.debug(LOG_TAG, TAG, "Orchestrator ready")
+
         return orchestrator
     }
-    
+
     private fun createFeaturizationCoordinator(): FeaturizationCoordinator {
-        return FeaturizationCoordinator(state, privacyValidator!!)
+        return FeaturizationCoordinator(state, privacyValidator)
     }
     
     /**
@@ -101,71 +99,14 @@ internal class ContentAnalyticsFactory(
     }
     
     fun getPrivacyValidator(): ContentAnalyticsPrivacyValidator {
-        if (privacyValidator == null) {
-            Log.warning(TAG, TAG, "Privacy validator accessed before initialization - creating new instance")
+        if (!::privacyValidator.isInitialized) {
+            Log.warning(LOG_TAG, TAG, "Privacy validator accessed before initialization - creating new instance")
             privacyValidator = createPrivacyValidator()
         }
-        return privacyValidator!!
+        return privacyValidator
     }
     
     
-    // Processing Component Creation
-    
-    /**
-     * Creates an EventValidator for validating incoming events.
-     */
-    fun createEventValidator(): EventValidating {
-        return EventValidator(state)
-    }
-    
-    /**
-     * Creates an EventExclusionFilter for filtering events based on configuration.
-     */
-    fun createEventExclusionFilter(): EventExclusionFiltering {
-        return EventExclusionFilter(state)
-    }
-    
-    /**
-     * Creates a MetricsBuilder for aggregating event metrics.
-     */
-    fun createMetricsBuilder(): MetricsBuilding {
-        return MetricsBuilder(state)
-    }
-    
-    /**
-     * Creates an AssetEventProcessor for processing asset events.
-     */
-    fun createAssetEventProcessor(
-        eventDispatcher: EventDispatcher,
-        xdmEventBuilder: XDMEventBuilder,
-        metricsBuilder: MetricsBuilding
-    ): AssetEventProcessing {
-        return AssetEventProcessor(
-            state = state,
-            eventDispatcher = eventDispatcher,
-            xdmEventBuilder = xdmEventBuilder,
-            metricsBuilder = metricsBuilder
-        )
-    }
-    
-    /**
-     * Creates an ExperienceEventProcessor for processing experience events.
-     */
-    fun createExperienceEventProcessor(
-        eventDispatcher: EventDispatcher,
-        xdmEventBuilder: XDMEventBuilder,
-        metricsBuilder: MetricsBuilding,
-        featurizationCoordinator: FeaturizationCoordinator
-    ): ExperienceEventProcessing {
-        return ExperienceEventProcessor(
-            state = state,
-            eventDispatcher = eventDispatcher,
-            xdmEventBuilder = xdmEventBuilder,
-            metricsBuilder = metricsBuilder,
-            featurizationCoordinator = featurizationCoordinator
-        )
-    }
-
     private fun createEventDispatcher(): EventDispatcher {
         return EdgeEventDispatcher(extensionApi)
     }
@@ -186,7 +127,7 @@ internal class ContentAnalyticsFactory(
         )
         
         if (assetDataQueue == null) {
-            Log.warning(TAG, TAG, "Failed to create data queue for asset batches")
+            Log.warning(LOG_TAG, TAG, "Failed to create data queue for asset batches")
             return null
         }
         
@@ -195,11 +136,11 @@ internal class ContentAnalyticsFactory(
         )
         
         if (experienceDataQueue == null) {
-            Log.warning(TAG, TAG, "Failed to create data queue for experience batches")
+            Log.warning(LOG_TAG, TAG, "Failed to create data queue for experience batches")
             return null
         }
         
-        Log.debug(TAG, TAG, "Creating BatchCoordinator")
+        Log.debug(LOG_TAG, TAG, "Creating BatchCoordinator")
         
         val batchCoordinator = BatchCoordinator(
             assetDataQueue = assetDataQueue,
@@ -207,7 +148,7 @@ internal class ContentAnalyticsFactory(
             state = state
         )
         
-        Log.debug(TAG, TAG, "BatchCoordinator created")
+        Log.debug(LOG_TAG, TAG, "BatchCoordinator created")
         
         return batchCoordinator
     }
@@ -223,23 +164,23 @@ internal class ContentAnalyticsFactory(
         )
         
         if (dataQueue == null) {
-            Log.warning(TAG, TAG, "Failed to create data queue for featurization")
+            Log.warning(LOG_TAG, TAG, "Failed to create data queue for featurization")
             return null
         }
         
         val config = state.configuration
         if (config == null) {
-            Log.warning(TAG, TAG, "No configuration available for featurization service")
+            Log.warning(LOG_TAG, TAG, "No configuration available for featurization service")
             return null
         }
         
         val serviceUrl = config.getFeaturizationBaseUrl()
         if (serviceUrl == null) {
-            Log.warning(TAG, TAG, "Cannot determine featurization URL - Edge domain not configured")
+            Log.warning(LOG_TAG, TAG, "Cannot determine featurization URL - Edge domain not configured")
             return null
         }
         
-        Log.debug(TAG, TAG, "Featurization URL: $serviceUrl")
+        Log.debug(LOG_TAG, TAG, "Featurization URL: $serviceUrl")
         
         val featurizationService = ExperienceFeaturizationService(
             baseUrl = serviceUrl,
@@ -250,7 +191,7 @@ internal class ContentAnalyticsFactory(
         val hitQueue = PersistentHitQueue(dataQueue, hitProcessor)
         hitQueue.beginProcessing()
         
-        Log.debug(TAG, TAG, "Featurization hit queue created")
+        Log.debug(LOG_TAG, TAG, "Featurization hit queue created")
         
         return hitQueue
     }

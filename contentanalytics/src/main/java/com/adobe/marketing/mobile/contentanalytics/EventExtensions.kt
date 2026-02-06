@@ -80,8 +80,14 @@ val Event.experienceAction: String?
  */
 val Event.experienceDefinition: ExperienceDefinition?
     get() {
-        val defMap = eventData?.get(ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_DEFINITION) as? Map<*, *>
-        return defMap?.let { ExperienceDefinition.fromMap(it as Map<String, Any?>) }
+        val rawMap = eventData?.get(ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_DEFINITION) as? Map<*, *>
+            ?: return null
+        val stringKeyedMap = mutableMapOf<String, Any?>()
+        for ((key, value) in rawMap) {
+            val stringKey = key as? String ?: continue
+            stringKeyedMap[stringKey] = value
+        }
+        return ExperienceDefinition.fromMap(stringKeyedMap)
     }
 
 /**

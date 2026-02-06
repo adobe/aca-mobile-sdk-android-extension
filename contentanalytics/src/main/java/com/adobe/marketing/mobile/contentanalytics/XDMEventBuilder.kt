@@ -18,20 +18,8 @@ package com.adobe.marketing.mobile.contentanalytics
 internal object XDMEventBuilder {
     
     /**
-     * Safely extracts a string-keyed map from Any, returning null if not a valid map.
-     */
-    private fun extractStringKeyedMap(value: Any?): Map<String, Any?>? {
-        val rawMap = value as? Map<*, *> ?: return null
-        val result = mutableMapOf<String, Any?>()
-        for ((key, mapValue) in rawMap) {
-            val stringKey = key as? String ?: continue
-            result[stringKey] = mapValue
-        }
-        return result
-    }
-    
-    /**
-     * Converts a value to its string representation for XDM schema compliance.
+     * Safely converts a value to its string representation.
+     * Returns null for null values so callers can filter them out.
      */
     private fun stringifyValue(value: Any?): String? {
         return when (value) {
@@ -54,11 +42,11 @@ internal object XDMEventBuilder {
             else -> value.toString()
         }
     }
-    
+
     /**
      * Converts all values in a map to strings for XDM schema compliance.
      * The global XDM schema requires meta:xdmType on all fields - using strings ensures compliance.
-     * Null values are filtered out to avoid invalid XDM data.
+     * Null values are filtered out.
      */
     private fun stringifyExtras(extras: Map<String, Any?>): Map<String, String> {
         val result = mutableMapOf<String, String>()
@@ -110,8 +98,13 @@ internal object XDMEventBuilder {
         }
         
         // Stringify experienceExtras for XDM schema compliance
-        extractStringKeyedMap(metrics["experienceExtras"])?.let {
-            interactionData["experienceExtras"] = stringifyExtras(it)
+        (metrics["experienceExtras"] as? Map<*, *>)?.let { rawMap ->
+            val stringKeyedMap = mutableMapOf<String, Any?>()
+            for ((key, value) in rawMap) {
+                val stringKey = key as? String ?: continue
+                stringKeyedMap[stringKey] = value
+            }
+            interactionData["experienceExtras"] = stringifyExtras(stringKeyedMap)
         }
         
         // Build asset attribution array (zero metrics since assets are tracked separately)
@@ -190,8 +183,13 @@ internal object XDMEventBuilder {
         }
         
         // Stringify assetExtras for XDM schema compliance
-        extractStringKeyedMap(metrics["assetExtras"])?.let {
-            assetData["assetExtras"] = stringifyExtras(it)
+        (metrics["assetExtras"] as? Map<*, *>)?.let { rawMap ->
+            val stringKeyedMap = mutableMapOf<String, Any?>()
+            for ((key, value) in rawMap) {
+                val stringKey = key as? String ?: continue
+                stringKeyedMap[stringKey] = value
+            }
+            assetData["assetExtras"] = stringifyExtras(stringKeyedMap)
         }
         
         return assetData

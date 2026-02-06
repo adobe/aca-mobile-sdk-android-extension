@@ -54,7 +54,8 @@ internal class ExperienceFeaturizationService(
 ) : ExperienceFeaturizationServiceProtocol {
     
     companion object {
-        private const val TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val LOG_TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val TAG = "ExperienceFeaturizationService"
     }
     
     override fun checkExperienceExists(
@@ -65,7 +66,7 @@ internal class ExperienceFeaturizationService(
     ) {
         val url = "$baseUrl/check/$imsOrg/$datastreamId/$experienceId"
         
-        Log.trace(TAG, TAG, "Checking experience | ID: $experienceId")
+        Log.trace(LOG_TAG, TAG, "Checking experience | ID: $experienceId")
         
         val request = NetworkRequest(
             url,
@@ -92,12 +93,12 @@ internal class ExperienceFeaturizationService(
     ) {
         val url = "$baseUrl/"
         
-        Log.debug(TAG, TAG, "Registering experience | ID: $experienceId")
+        Log.debug(LOG_TAG, TAG, "Registering experience | ID: $experienceId")
         
         val contentJson = try {
             JSONUtils.mapToJSONObject(content.toMap()).toString()
         } catch (e: Exception) {
-            Log.warning(TAG, TAG, "Failed to encode experience content | Error: ${e.message}")
+            Log.warning(LOG_TAG, TAG, "Failed to encode experience content | Error: ${e.message}")
             completion(Result.failure(FeaturizationError.InvalidResponse))
             return
         }
@@ -126,7 +127,7 @@ internal class ExperienceFeaturizationService(
         completion: (Result<Boolean>) -> Unit
     ) {
         if (connection == null) {
-            Log.warning(TAG, TAG, "Network error | ID: $experienceId | No connection")
+            Log.warning(LOG_TAG, TAG, "Network error | ID: $experienceId | No connection")
             completion(Result.failure(FeaturizationError.NetworkError("No connection")))
             return
         }
@@ -134,35 +135,35 @@ internal class ExperienceFeaturizationService(
         val responseBody = extractResponseBody(connection)
         val statusCode = connection.responseCode
         
-        Log.trace(TAG, TAG, "Response | Status: $statusCode | Body: $responseBody")
+        Log.trace(LOG_TAG, TAG, "Response | Status: $statusCode | Body: $responseBody")
         
         when (statusCode) {
             200 -> {
                 val exists = try {
                     val json = JSONObject(responseBody)
                     if (!json.has("sendContent")) {
-                        Log.warning(TAG, TAG, "Invalid response (missing 'sendContent') | ID: $experienceId")
+                        Log.warning(LOG_TAG, TAG, "Invalid response (missing 'sendContent') | ID: $experienceId")
                         completion(Result.failure(FeaturizationError.InvalidResponse))
                         return
                     }
                     
                     val sendContent = json.getBoolean("sendContent")
                     val existsValue = !sendContent
-                    Log.debug(TAG, TAG, "Check succeeded | ID: $experienceId | sendContent: $sendContent | Exists: $existsValue")
+                    Log.debug(LOG_TAG, TAG, "Check succeeded | ID: $experienceId | sendContent: $sendContent | Exists: $existsValue")
                     existsValue
                 } catch (e: Exception) {
-                    Log.warning(TAG, TAG, "Failed to parse response | ID: $experienceId | Error: ${e.message}")
+                    Log.warning(LOG_TAG, TAG, "Failed to parse response | ID: $experienceId | Error: ${e.message}")
                     completion(Result.failure(FeaturizationError.InvalidResponse))
                     return
                 }
                 completion(Result.success(exists))
             }
             404 -> {
-                Log.debug(TAG, TAG, "Not featurized (404) | ID: $experienceId")
+                Log.debug(LOG_TAG, TAG, "Not featurized (404) | ID: $experienceId")
                 completion(Result.success(false))
             }
             else -> {
-                Log.warning(TAG, TAG, "HTTP error: $statusCode | ID: $experienceId | Body: $responseBody")
+                Log.warning(LOG_TAG, TAG, "HTTP error: $statusCode | ID: $experienceId | Body: $responseBody")
                 completion(Result.failure(FeaturizationError.HttpError(statusCode)))
             }
         }
@@ -176,7 +177,7 @@ internal class ExperienceFeaturizationService(
         completion: (Result<Unit>) -> Unit
     ) {
         if (connection == null) {
-            Log.warning(TAG, TAG, "Network error | ID: $experienceId | No connection")
+            Log.warning(LOG_TAG, TAG, "Network error | ID: $experienceId | No connection")
             completion(Result.failure(FeaturizationError.NetworkError("No connection")))
             return
         }
@@ -184,15 +185,15 @@ internal class ExperienceFeaturizationService(
         val responseBody = extractResponseBody(connection)
         val statusCode = connection.responseCode
         
-        Log.trace(TAG, TAG, "Register response | Status: $statusCode | Body: $responseBody")
+        Log.trace(LOG_TAG, TAG, "Register response | Status: $statusCode | Body: $responseBody")
         
         when (statusCode) {
             in 200..299 -> {
-                Log.debug(TAG, TAG, "Registered | ID: $experienceId | Status: $statusCode")
+                Log.debug(LOG_TAG, TAG, "Registered | ID: $experienceId | Status: $statusCode")
                 completion(Result.success(Unit))
             }
             else -> {
-                Log.warning(TAG, TAG, "Failed to register | Status: $statusCode | ID: $experienceId | Body: $responseBody")
+                Log.warning(LOG_TAG, TAG, "Failed to register | Status: $statusCode | ID: $experienceId | Body: $responseBody")
                 completion(Result.failure(FeaturizationError.HttpError(statusCode)))
             }
         }

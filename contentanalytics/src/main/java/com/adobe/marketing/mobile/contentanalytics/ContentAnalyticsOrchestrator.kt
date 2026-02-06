@@ -15,11 +15,6 @@ package com.adobe.marketing.mobile.contentanalytics
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.services.Log
 
-/**
- * Orchestrates Content Analytics event processing by coordinating between specialized components.
- * This class acts as a thin coordinator, delegating validation, filtering, metrics building,
- * and event processing to dedicated components.
- */
 internal class ContentAnalyticsOrchestrator(
     private val state: ContentAnalyticsStateManager,
     private val eventValidator: EventValidating,
@@ -28,169 +23,135 @@ internal class ContentAnalyticsOrchestrator(
     private val experienceEventProcessor: ExperienceEventProcessing,
     private val featurizationCoordinator: FeaturizationCoordinator,
     private val batchCoordinator: BatchCoordinator?
-) : ContentAnalyticsOrchestrating {
-    
+) {
+
     companion object {
-        private const val TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val LOG_TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val TAG = "ContentAnalyticsOrchestrator"
     }
-    
-    init {
-        Log.debug(TAG, TAG, "Orchestrator initialized")
-    }
-    
-    // Featurization Queue Management
-    
-    override fun hasFeaturizationQueue(): Boolean = featurizationCoordinator.hasQueue
-    
-    override fun initializeFeaturizationQueueIfNeeded(queue: PersistentHitQueue?) {
+
+    fun hasFeaturizationQueue(): Boolean = featurizationCoordinator.hasQueue
+
+    fun initializeFeaturizationQueueIfNeeded(queue: PersistentHitQueue?) {
         featurizationCoordinator.initializeQueue(queue)
     }
-    
-    // Event Processing
-    
-    override fun processAssetEvent(event: Event) {
-        // Validate using EventValidator
+
+    fun processAssetEvent(event: Event) {
         val validationResult = eventValidator.validateAssetEvent(event)
         if (!validationResult.isValid) {
-            Log.warning(TAG, TAG, "Asset event validation failed: ${validationResult.error}")
+            Log.warning(LOG_TAG, TAG, "Asset event validation failed: ${validationResult.error}")
             return
         }
-        
-        // Check processing conditions
-        eventValidator.validateProcessingConditions()?.let { error ->
-            Log.warning(TAG, TAG, "Processing conditions not met: $error")
+
+        if (eventExclusionFilter.shouldExcludeAsset(event)) {
+            Log.debug(LOG_TAG, TAG, "Asset excluded by pattern")
             return
         }
-        
-        // Process the validated event
-        processValidatedAssetEvent(event)
+
+        processValidatedEvent(
+            event = event,
+            entityType = "asset",
+            identifier = { it.assetKey },
+            addToBatch = { batchCoordinator?.addAssetEvent(it) },
+            sendImmediately = { assetEventProcessor.sendAssetEventImmediately(it) }
+        )
     }
-    
-    override fun processExperienceEvent(event: Event) {
-        // Check if experience tracking is enabled
-        if (!eventValidator.isExperienceTrackingEnabled()) {
-            Log.trace(TAG, TAG, "Experience tracking disabled")
+
+    fun processExperienceEvent(event: Event) {
+        if (state.configuration?.trackExperiences != true) {
+            Log.trace(LOG_TAG, TAG, "Experience tracking disabled")
             return
         }
-        
-        // Validate using EventValidator
+
         val validationResult = eventValidator.validateExperienceEvent(event)
         if (!validationResult.isValid) {
-            Log.warning(TAG, TAG, "Experience event validation failed: ${validationResult.error}")
+            Log.warning(LOG_TAG, TAG, "Experience event validation failed: ${validationResult.error}")
             return
         }
-        
-        // Check processing conditions
-        eventValidator.validateProcessingConditions()?.let { error ->
-            Log.warning(TAG, TAG, "Processing conditions not met: $error")
-            return
-        }
-        
-        // Process the validated event
-        processValidatedExperienceEvent(event)
-    }
-    
-    // Batch Management
-    
-    override fun flush() {
-        Log.debug(TAG, TAG, "Flushing pending events")
-        batchCoordinator?.flush()
-    }
-    
-    override fun clearPendingBatch() {
-        Log.debug(TAG, TAG, "Clearing pending batch")
-        batchCoordinator?.clearPendingBatch()
-    }
-    
-    // Configuration
-    
-    override fun updateConfiguration(config: ContentAnalyticsConfiguration) {
-        Log.debug(TAG, TAG, "Updating orchestrator configuration")
-        
-        // Check if batching is being disabled
-        val wasBatchingEnabled = state.batchingEnabled
-        val isNowDisabled = !config.batchingEnabled
-        
-        if (wasBatchingEnabled && isNowDisabled) {
-            Log.debug(TAG, TAG, "Batching disabled - flushing pending events before configuration update")
-            batchCoordinator?.flush()
-        }
-        
-        // Update batch coordinator with new configuration
-        batchCoordinator?.updateConfiguration(config)
-    }
-    
-    // Batch Flush Handlers
-    
-    override fun handleAssetBatchFlush(events: List<Event>) {
-        if (events.isEmpty()) return
-        
-        Log.debug(TAG, TAG, "handleAssetBatchFlush | Events: ${events.size}")
-        assetEventProcessor.processAssetEvents(events)
-    }
-    
-    override fun handleExperienceBatchFlush(events: List<Event>) {
-        if (events.isEmpty()) return
-        
-        Log.debug(TAG, TAG, "handleExperienceBatchFlush | Events: ${events.size}")
-        experienceEventProcessor.processExperienceEvents(events)
-    }
-    
-    // Private Helpers
-    
-    private fun processValidatedAssetEvent(event: Event) {
-        if (event.assetURL == null) return
-        
-        // Check exclusion using EventExclusionFilter
-        if (eventExclusionFilter.shouldExcludeAsset(event)) {
-            Log.debug(TAG, TAG, "Asset excluded by pattern")
-            return
-        }
-        
-        // Route to batch or immediate processing
-        if (state.batchingEnabled && batchCoordinator != null) {
-            batchCoordinator.addAssetEvent(event)
-            Log.trace(TAG, TAG, "Added asset event to batch")
-        } else {
-            assetEventProcessor.sendAssetEventImmediately(event)
-        }
-        
-        Log.trace(TAG, TAG, "Processed asset event")
-    }
-    
-    private fun processValidatedExperienceEvent(event: Event) {
-        if (event.experienceId == null) return
-        
-        // Check exclusion using EventExclusionFilter
+
         if (eventExclusionFilter.shouldExcludeExperience(event)) {
-            Log.debug(TAG, TAG, "Experience excluded by pattern")
+            Log.debug(LOG_TAG, TAG, "Experience excluded by pattern")
             return
         }
-        
-        // Pre-process: Store experience definition if this is a definition event
+
         preprocessExperienceDefinition(event)
-        
-        // Route to batch or immediate processing
-        if (state.batchingEnabled && batchCoordinator != null) {
-            // Only add interaction events to batch, skip definition events
-            if (event.experienceAction?.isDefinitionAction() != true) {
-                batchCoordinator.addExperienceEvent(event)
-                Log.trace(TAG, TAG, "Added experience event to batch")
-            }
-        } else {
-            experienceEventProcessor.sendExperienceEventImmediately(event)
+
+        if (event.experienceAction?.isDefinitionAction() == true) {
+            return
         }
-        
-        Log.trace(TAG, TAG, "Processed experience event")
+
+        processValidatedEvent(
+            event = event,
+            entityType = "experience",
+            identifier = { it.experienceKey },
+            addToBatch = { batchCoordinator?.addExperienceEvent(it) },
+            sendImmediately = { experienceEventProcessor.sendExperienceEventImmediately(it) }
+        )
     }
-    
-    /**
-     * Store experience definition for asset attribution if this is a registration event
-     */
+
+    private fun processValidatedEvent(
+        event: Event,
+        entityType: String,
+        identifier: (Event) -> String?,
+        addToBatch: (Event) -> Unit,
+        sendImmediately: (Event) -> Unit
+    ) {
+        val id = identifier(event) ?: return
+        Log.trace(LOG_TAG, TAG, "Processing validated $entityType event: $id")
+
+        if (state.batchingEnabled && batchCoordinator != null) {
+            addToBatch(event)
+            Log.trace(LOG_TAG, TAG, "Added $entityType event to batch")
+        } else {
+            Log.debug(LOG_TAG, TAG, "Batching disabled - sending $entityType event immediately")
+            sendImmediately(event)
+        }
+
+        Log.trace(LOG_TAG, TAG, "Processed $entityType event")
+    }
+
     private fun preprocessExperienceDefinition(event: Event) {
         event.experienceDefinition?.let { definition ->
             state.registerExperienceDefinition(definition)
-            Log.debug(TAG, TAG, "Stored experience definition: ${definition.experienceId} with ${definition.assets.size} assets")
+            Log.debug(LOG_TAG, TAG, "Stored experience definition: ${definition.experienceId} with ${definition.assets.size} assets")
         }
+    }
+
+    fun flush() {
+        Log.debug(LOG_TAG, TAG, "Flushing pending events")
+        batchCoordinator?.flush()
+    }
+
+    fun updateConfiguration(config: ContentAnalyticsConfiguration) {
+        Log.debug(LOG_TAG, TAG, "Updating orchestrator configuration")
+
+        val wasBatchingEnabled = state.batchingEnabled
+        val isNowDisabled = !config.batchingEnabled
+
+        if (wasBatchingEnabled && isNowDisabled) {
+            Log.debug(LOG_TAG, TAG, "Batching disabled - flushing pending events before configuration update")
+            batchCoordinator?.flush()
+        }
+
+        batchCoordinator?.updateConfiguration(config)
+    }
+
+    fun clearPendingBatch() {
+        Log.debug(LOG_TAG, TAG, "Clearing pending batch")
+        batchCoordinator?.clearPendingBatch()
+    }
+
+    fun handleAssetBatchFlush(events: List<Event>) {
+        if (events.isEmpty()) return
+
+        Log.debug(LOG_TAG, TAG, "Processing asset batch flush | Events: ${events.size}")
+        assetEventProcessor.processAssetEvents(events)
+    }
+
+    fun handleExperienceBatchFlush(events: List<Event>) {
+        if (events.isEmpty()) return
+
+        Log.debug(LOG_TAG, TAG, "Processing experience batch flush | Events: ${events.size}")
+        experienceEventProcessor.processExperienceEvents(events)
     }
 }

@@ -32,7 +32,8 @@ internal class BatchCoordinator(
 ) {
     
     companion object {
-        private const val TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val LOG_TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val TAG = "BatchCoordinator"
     }
     
     private val assetHitProcessor = DirectHitProcessor(BatchHitType.ASSET)
@@ -68,7 +69,7 @@ internal class BatchCoordinator(
         assetHitQueue.beginProcessing()
         experienceHitQueue.beginProcessing()
         
-        Log.debug(TAG, TAG, "BatchCoordinator initialized")
+        Log.debug(LOG_TAG, TAG, "BatchCoordinator initialized")
     }
     
     /**
@@ -88,7 +89,7 @@ internal class BatchCoordinator(
     fun updateConfiguration(newConfig: ContentAnalyticsConfiguration) {
         val oldConfig = state.configuration ?: ContentAnalyticsConfiguration()
         
-        Log.debug(TAG, TAG, "Configuration updated | Batching: ${newConfig.batchingEnabled} | Interval: ${newConfig.batchFlushInterval}ms")
+        Log.debug(LOG_TAG, TAG, "Configuration updated | Batching: ${newConfig.batchingEnabled} | Interval: ${newConfig.batchFlushInterval}ms")
         
         // Flush if batch size reduced below current count
         scope.launch {
@@ -97,7 +98,7 @@ internal class BatchCoordinator(
                 val totalCount = assetEventCount + experienceEventCount
                 if (newConfig.maxBatchSize < oldConfig.maxBatchSize && 
                     totalCount >= newConfig.maxBatchSize) {
-                    Log.debug(TAG, TAG, "Batch size reduced from ${oldConfig.maxBatchSize} to ${newConfig.maxBatchSize} - flushing")
+                    Log.debug(LOG_TAG, TAG, "Batch size reduced from ${oldConfig.maxBatchSize} to ${newConfig.maxBatchSize} - flushing")
                     performFlush()
                 }
             } finally {
@@ -107,7 +108,7 @@ internal class BatchCoordinator(
         
         // Update timer if interval changed
         if (newConfig.batchFlushInterval != oldConfig.batchFlushInterval && flushRunnable != null) {
-            Log.debug(TAG, TAG, "Flush interval changed from ${oldConfig.batchFlushInterval}ms to ${newConfig.batchFlushInterval}ms - rescheduling")
+            Log.debug(LOG_TAG, TAG, "Flush interval changed from ${oldConfig.batchFlushInterval}ms to ${newConfig.batchFlushInterval}ms - rescheduling")
             cancelBatchTimer()
             if (newConfig.batchingEnabled) {
                 scheduleBatchFlush(newConfig.batchFlushInterval)
@@ -133,7 +134,7 @@ internal class BatchCoordinator(
                 val maxBatchSize = state.configuration?.maxBatchSize 
                     ?: ContentAnalyticsConstants.Defaults.MAX_BATCH_SIZE_LIMIT
                 
-                Log.trace(TAG, TAG, "Asset event queued: $assetEventCount/$maxBatchSize")
+                Log.trace(LOG_TAG, TAG, "Asset event queued: $assetEventCount/$maxBatchSize")
                 
                 if (firstTrackingTime == null) {
                     firstTrackingTime = Date()
@@ -165,7 +166,7 @@ internal class BatchCoordinator(
                 val maxBatchSize = state.configuration?.maxBatchSize 
                     ?: ContentAnalyticsConstants.Defaults.MAX_BATCH_SIZE_LIMIT
                 
-                Log.trace(TAG, TAG, "Experience event queued: $experienceEventCount/$maxBatchSize")
+                Log.trace(LOG_TAG, TAG, "Experience event queued: $experienceEventCount/$maxBatchSize")
                 
                 if (firstTrackingTime == null) {
                     firstTrackingTime = Date()
@@ -187,7 +188,7 @@ internal class BatchCoordinator(
      * Flush all pending batches immediately (public API).
      */
     fun flush() {
-        Log.debug(TAG, TAG, "Flushing batches")
+        Log.debug(LOG_TAG, TAG, "Flushing batches")
         
         scope.launch {
             stateMutex.lock()
@@ -206,7 +207,7 @@ internal class BatchCoordinator(
     private suspend fun performFlush() {
         if (assetEventCount + experienceEventCount == 0) return
         
-        Log.debug(TAG, TAG, "Batch flush: $assetEventCount assets, $experienceEventCount experiences")
+        Log.debug(LOG_TAG, TAG, "Batch flush: $assetEventCount assets, $experienceEventCount experiences")
         
         val assetEvents = assetHitProcessor.processAccumulatedEvents()
         val experienceEvents = experienceHitProcessor.processAccumulatedEvents()
@@ -239,7 +240,7 @@ internal class BatchCoordinator(
                 assetHitQueue.clear()
                 experienceHitQueue.clear()
                 
-                Log.debug(TAG, TAG, "Pending batches cleared")
+                Log.debug(LOG_TAG, TAG, "Pending batches cleared")
             } finally {
                 stateMutex.unlock()
             }
@@ -256,7 +257,7 @@ internal class BatchCoordinator(
         experienceHitQueue.close()
         scope.cancel()
         
-        Log.debug(TAG, TAG, "BatchCoordinator closed")
+        Log.debug(LOG_TAG, TAG, "BatchCoordinator closed")
     }
     
     /**
@@ -270,9 +271,9 @@ internal class BatchCoordinator(
         val entity = DataEntityHelper.fromEvent(event)
         
         if (queue.queue(entity)) {
-            Log.trace(TAG, TAG, "Event persisted | Type: $type | ID: ${event.uniqueIdentifier}")
+            Log.trace(LOG_TAG, TAG, "Event persisted | Type: $type | ID: ${event.uniqueIdentifier}")
         } else {
-            Log.warning(TAG, TAG, "Failed to persist event | Type: $type | ID: ${event.uniqueIdentifier}")
+            Log.warning(LOG_TAG, TAG, "Failed to persist event | Type: $type | ID: ${event.uniqueIdentifier}")
         }
     }
     
@@ -286,7 +287,7 @@ internal class BatchCoordinator(
         // Check if we've reached the maximum batch size
         val totalCount = assetEventCount + experienceEventCount
         if (totalCount >= config.maxBatchSize) {
-            Log.debug(TAG, TAG, "Batch size limit reached ($totalCount >= ${config.maxBatchSize}), flushing")
+            Log.debug(LOG_TAG, TAG, "Batch size limit reached ($totalCount >= ${config.maxBatchSize}), flushing")
             performFlush()
             return
         }
@@ -295,7 +296,7 @@ internal class BatchCoordinator(
         firstTrackingTime?.let { firstTime ->
             val timeElapsed = (Date().time - firstTime.time) / 1000.0
             if (timeElapsed >= config.maxWaitTime) {
-                Log.debug(TAG, TAG, "Max wait time exceeded ($timeElapsed >= ${config.maxWaitTime}s), flushing")
+                Log.debug(LOG_TAG, TAG, "Max wait time exceeded ($timeElapsed >= ${config.maxWaitTime}s), flushing")
                 performFlush()
             }
         }
@@ -307,14 +308,14 @@ internal class BatchCoordinator(
             cancelBatchTimer()
             
             val runnable = Runnable {
-                Log.debug(TAG, TAG, "Batch timer triggered, flushing")
+                Log.debug(LOG_TAG, TAG, "Batch timer triggered, flushing")
                 flush()
             }
             
             mainHandler.postDelayed(runnable, intervalMs)
             flushRunnable = runnable
             
-            Log.trace(TAG, TAG, "Batch timer scheduled | Interval: ${intervalMs}ms")
+            Log.trace(LOG_TAG, TAG, "Batch timer scheduled | Interval: ${intervalMs}ms")
         }
     }
     
