@@ -41,6 +41,13 @@ on:
         required: false
         default: ''
 
+      edge-identity-dependency:
+        description: | 
+          If a version is provided, update Edge Identity dependency in gradle.properties (ex: 3.0.0).
+        type: string
+        required: false
+        default: ''
+
 jobs:
   update-versions:
     permissions:
@@ -50,7 +57,7 @@ jobs:
     with:
       version: ${{ github.event.inputs.version }}
       branch: ${{ github.event.inputs.branch }}
-      dependencies: Core ${{ github.event.inputs.core-dependency }}, Edge ${{ github.event.inputs.edge-dependency }}
+      dependencies: Core ${{ github.event.inputs.core-dependency }}, Edge ${{ github.event.inputs.edge-dependency }}, EdgeIdentity ${{ github.event.inputs.edge-identity-dependency }}
       paths: gradle.properties, contentanalytics/src/main/java/com/adobe/marketing/mobile/contentanalytics/ContentAnalyticsConstants.kt
       update: true
 
