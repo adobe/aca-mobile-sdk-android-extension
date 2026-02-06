@@ -41,5 +41,6 @@ jobs:
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
       version-validation-paths: gradle.properties, contentanalytics/src/main/java/com/adobe/marketing/mobile/contentanalytics/ContentAnalyticsConstants.kt
       version-validation-dependencies: Core ${{ github.event.inputs.core-dependency }}
+      staging-dir: contentanalytics/build/staging-deploy
     secrets: inherit
 
