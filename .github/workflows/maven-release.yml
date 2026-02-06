@@ -27,9 +27,10 @@ on:
         default: true
 
       core-dependency:
-        description: 'The Core dependency version in gradle.properties to be validated (ex: 5.0.0).'
+        description: 'Optional. Core version in gradle.properties to validate (ex: 3.0.0). Leave empty when using dynamic versions (e.g. 3.+).'
         type: string
-        required: true
+        required: false
+        default: ''
 
 jobs:
   publish:
