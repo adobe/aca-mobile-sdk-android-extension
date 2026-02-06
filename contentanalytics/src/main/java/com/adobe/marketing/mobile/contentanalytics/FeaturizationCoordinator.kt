@@ -27,7 +27,8 @@ internal class FeaturizationCoordinator(
     private val queueInitLock = Any()
     
     companion object {
-        private const val TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val LOG_TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val TAG = "FeaturizationCoordinator"
     }
     
     // MARK: - Public Interface
@@ -40,16 +41,16 @@ internal class FeaturizationCoordinator(
     fun initializeQueue(queue: PersistentHitQueue?) {
         synchronized(queueInitLock) {
             if (hitQueue != null) {
-                Log.trace(TAG, TAG, "Featurization queue already initialized - skipping")
+                Log.trace(LOG_TAG, TAG, "Featurization queue already initialized - skipping")
                 return
             }
             
             hitQueue = queue
             
             if (hitQueue != null) {
-                Log.debug(TAG, TAG, "Featurization queue ready")
+                Log.debug(LOG_TAG, TAG, "Featurization queue ready")
             } else {
-                Log.debug(TAG, TAG, "Featurization queue not yet available (waiting for valid configuration)")
+                Log.debug(LOG_TAG, TAG, "Featurization queue not yet available (waiting for valid configuration)")
             }
         }
     }
@@ -82,39 +83,39 @@ internal class FeaturizationCoordinator(
     /** Checks consent, config, and experience definition before featurization */
     private fun validatePrerequisites(experienceId: String): FeaturizationPrerequisites? {
         if (!privacyValidator.isDataCollectionAllowed()) {
-            Log.debug(TAG, TAG, "Consent denied")
+            Log.debug(LOG_TAG, TAG, "Consent denied")
             return null
         }
         
-        Log.debug(TAG, TAG, "Consent OK")
+        Log.debug(LOG_TAG, TAG, "Consent OK")
         
         val config = state.configuration
         if (config == null) {
-            Log.debug(TAG, TAG, "No config")
+            Log.debug(LOG_TAG, TAG, "No configuration available")
             return null
         }
         
         val serviceUrl = config.getFeaturizationBaseUrl()
         if (serviceUrl.isNullOrEmpty()) {
-            Log.debug(TAG, TAG, "Missing URL (edgeDomain=${config.edgeDomain}, region=${config.region})")
+            Log.debug(LOG_TAG, TAG, "Missing URL (edgeDomain=${config.edgeDomain}, region=${config.region})")
             return null
         }
         
         val imsOrg = config.experienceCloudOrgId
         if (imsOrg.isNullOrEmpty()) {
-            Log.debug(TAG, TAG, "Missing IMS org")
+            Log.debug(LOG_TAG, TAG, "Missing IMS org")
             return null
         }
         
-        Log.debug(TAG, TAG, "Config OK (url=$serviceUrl, org=$imsOrg)")
+        Log.debug(LOG_TAG, TAG, "Config OK (url=$serviceUrl, org=$imsOrg)")
         
         val definition = state.getExperienceDefinition(experienceId)
         if (definition == null) {
-            Log.warning(TAG, TAG, "No definition found for experience: $experienceId - registerExperience() must be called first")
+            Log.warning(LOG_TAG, TAG, "No definition found for experience: $experienceId - registerExperience() must be called first")
             return null
         }
         
-        Log.trace(TAG, TAG, "Definition found (id=$experienceId, assets=${definition.assets.size})")
+        Log.trace(LOG_TAG, TAG, "Definition found (id=$experienceId, assets=${definition.assets.size})")
         
         return FeaturizationPrerequisites(config, imsOrg, definition)
     }
@@ -144,7 +145,7 @@ internal class FeaturizationCoordinator(
         
         val datastreamId = config.datastreamId
         if (datastreamId.isNullOrEmpty()) {
-            Log.error(TAG, TAG, "Cannot send to featurization - datastreamId not configured")
+            Log.error(LOG_TAG, TAG, "Cannot send to featurization - datastreamId not configured")
             return null
         }
         
@@ -176,25 +177,25 @@ internal class FeaturizationCoordinator(
         val hitJson = try {
             hit.toJson()
         } catch (e: Exception) {
-            Log.error(TAG, TAG, "Failed to encode featurization hit | ExperienceID: $experienceId")
+            Log.error(LOG_TAG, TAG, "Failed to encode featurization hit | ExperienceID: $experienceId")
             return false
         }
         
-        Log.debug(TAG, TAG, "Hit encoded | Size: ${hitJson.length} bytes")
+        Log.debug(LOG_TAG, TAG, "Hit encoded | Size: ${hitJson.length} bytes")
         
         val dataEntity = DataEntity(hitJson)
         
         val queue = hitQueue
         if (queue == null) {
-            Log.error(TAG, TAG, "Featurization queue is nil - cannot queue hit | ID: $experienceId")
+            Log.error(LOG_TAG, TAG, "Featurization queue is nil - cannot queue hit | ID: $experienceId")
             return false
         }
         
         return if (queue.queue(dataEntity)) {
-            Log.debug(TAG, TAG, "Experience queued for featurization | ID: $experienceId")
+            Log.debug(LOG_TAG, TAG, "Experience queued for featurization | ID: $experienceId")
             true
         } else {
-            Log.error(TAG, TAG, "Failed to queue experience | ID: $experienceId")
+            Log.error(LOG_TAG, TAG, "Failed to queue experience | ID: $experienceId")
             false
         }
     }

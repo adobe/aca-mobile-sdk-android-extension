@@ -54,5 +54,5 @@ dependencies {
 
 // The aep-library plugin configures Java toolchains automatically
 // We rely on org.gradle.java.home in gradle.properties to point to Java 17
-
+// Run unit tests with JDK 17 so Mockito/Byte Buddy work without experimental flags.
 

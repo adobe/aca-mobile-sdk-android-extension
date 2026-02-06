@@ -31,7 +31,8 @@ internal class PersistentHitQueue(
 ) {
     
     companion object {
-        private const val TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val LOG_TAG = ContentAnalyticsConstants.LOG_TAG
+        private const val TAG = "PersistentHitQueue"
     }
     
     // Coroutine scope for async operations
@@ -53,9 +54,9 @@ internal class PersistentHitQueue(
         val success = dataQueue.add(entity)
         
         if (success) {
-            Log.trace(TAG, TAG, "Queued entity to DataQueue | ID: ${entity.uniqueIdentifier}")
+            Log.trace(LOG_TAG, TAG, "Queued entity to DataQueue | ID: ${entity.uniqueIdentifier}")
         } else {
-            Log.warning(TAG, TAG, "Failed to queue entity | ID: ${entity.uniqueIdentifier}")
+            Log.warning(LOG_TAG, TAG, "Failed to queue entity | ID: ${entity.uniqueIdentifier}")
         }
         
         return success
@@ -66,7 +67,7 @@ internal class PersistentHitQueue(
      */
     fun beginProcessing() {
         isStarted = true
-        Log.debug(TAG, TAG, "Queue processing started")
+        Log.debug(LOG_TAG, TAG, "Queue processing started")
         
         // Trigger processing of persisted entities (crash recovery)
         processPersistedEntities()
@@ -77,7 +78,7 @@ internal class PersistentHitQueue(
      */
     fun suspend() {
         isStarted = false
-        Log.debug(TAG, TAG, "Queue processing suspended")
+        Log.debug(LOG_TAG, TAG, "Queue processing suspended")
     }
     
     /**
@@ -85,7 +86,7 @@ internal class PersistentHitQueue(
      */
     fun clear() {
         dataQueue.clear()
-        Log.debug(TAG, TAG, "Queue cleared")
+        Log.debug(LOG_TAG, TAG, "Queue cleared")
     }
     
     /**
@@ -102,7 +103,7 @@ internal class PersistentHitQueue(
         isStarted = false
         dataQueue.close()
         scope.cancel()
-        Log.debug(TAG, TAG, "Queue closed")
+        Log.debug(LOG_TAG, TAG, "Queue closed")
     }
     
     private fun setupProcessor(hitProcessor: HitProcessor) {
@@ -122,15 +123,15 @@ internal class PersistentHitQueue(
                     
                     if (success) {
                         dataQueue.remove()
-                        Log.trace(TAG, TAG, "Entity processed and removed | ID: ${entity.uniqueIdentifier}")
+                        Log.trace(LOG_TAG, TAG, "Entity processed and removed | ID: ${entity.uniqueIdentifier}")
                         entity = dataQueue.peek()
                     } else {
-                        Log.warning(TAG, TAG, "Entity processing failed, will retry | ID: ${entity.uniqueIdentifier}")
+                        Log.warning(LOG_TAG, TAG, "Entity processing failed, will retry | ID: ${entity.uniqueIdentifier}")
                         break
                     }
                 }
             } catch (e: Exception) {
-                Log.warning(TAG, TAG, "Error processing persisted entities: ${e.message}")
+                Log.warning(LOG_TAG, TAG, "Error processing persisted entities: ${e.message}")
             }
         }
     }
