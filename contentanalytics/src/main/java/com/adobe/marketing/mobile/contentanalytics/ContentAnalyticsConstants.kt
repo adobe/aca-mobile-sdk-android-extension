@@ -20,7 +20,9 @@ internal object ContentAnalyticsConstants {
     // Extension Information
     const val EXTENSION_NAME = "com.adobe.contentanalytics"
     const val FRIENDLY_NAME = "Content Analytics"
-    const val EXTENSION_VERSION = "3.0.0-beta.1"
+    // VERSION is updated by the Update Versions workflow (aepsdk-commons expects const val VERSION)
+    const val VERSION = "3.0.0-beta.1"
+    const val EXTENSION_VERSION = VERSION
     const val LOG_TAG = FRIENDLY_NAME
     const val DATASTORE_NAME = EXTENSION_NAME
     
