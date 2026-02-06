@@ -1,5 +1,18 @@
 # Release Notes
 
+## 3.0.0 (January 29, 2026)
+
+### General Availability
+
+First production release. Same feature set as 3.0.0-beta.1 with stability improvements and refactored event processing (EventValidator, MetricsBuilder, dedicated asset/experience processors).
+
+**Highlights**
+- Channel and idSource in experienceContent XDM payload
+- Orchestrator and factory aligned with validators/processors architecture
+- JDK 17 recommended for unit tests (see build docs)
+
+---
+
 ## 3.0.0-beta.1 (January 26, 2026)
 
 ### Initial Beta Release
