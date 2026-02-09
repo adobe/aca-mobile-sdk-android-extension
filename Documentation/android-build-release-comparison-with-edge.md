@@ -79,7 +79,7 @@ This document compares **aca-mobile-sdk-android-extension** with [adobe/aepsdk-e
 | Aspect | Edge | Content Analytics |
 |--------|------|-------------------|
 | **Commons ref** | `gha-android-3.3.1` | `gha-android-3.4.3` |
-| **version-validation-paths** | `code/gradle.properties`, `code/edge/src/main/java/.../EdgeConstants.java` | `code/gradle.properties`, `code/contentanalytics/src/main/java/.../ContentAnalyticsConstants.kt` |
+| **version-validation-paths** | `code/gradle.properties`, `code/edge/src/main/java/.../EdgeConstants.java` | `code/gradle.properties`, `code/contentanalytics/src/main/kotlin/.../ContentAnalyticsConstants.kt` |
 | **version-validation-dependencies** | Core (required), EdgeIdentity (required), from inputs | Core (optional, from input) |
 | **staging-dir** | Not passed (not required in 3.3.1) | `code/contentanalytics/build/staging-deploy` |
 | **Workflow inputs** | tag, create-github-release, **core-dependency** (required), **edge-identity-dependency** (required) | tag, create-github-release, **core-dependency** (optional, default '') |

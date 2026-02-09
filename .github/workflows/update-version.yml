@@ -58,6 +58,6 @@ jobs:
       version: ${{ github.event.inputs.version }}
       branch: ${{ github.event.inputs.branch }}
       dependencies: Core ${{ github.event.inputs.core-dependency }}, Edge ${{ github.event.inputs.edge-dependency }}, EdgeIdentity ${{ github.event.inputs.edge-identity-dependency }}
-      paths: code/gradle.properties, code/contentanalytics/src/main/java/com/adobe/marketing/mobile/contentanalytics/ContentAnalyticsConstants.kt
+      paths: code/gradle.properties, code/contentanalytics/src/main/kotlin/com/adobe/marketing/mobile/contentanalytics/ContentAnalyticsConstants.kt
       update: true
 

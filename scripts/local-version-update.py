@@ -59,7 +59,7 @@ def main():
         updated |= update_file(gp, r'^[\s\S]*moduleVersion\s*=\s*', version_regex, new_version)
 
     # ContentAnalyticsConstants.kt: const val VERSION = "3.0.0-beta.1" -> "3.0.0"
-    kt = os.path.join(root, 'code', 'contentanalytics', 'src', 'main', 'java', 'com', 'adobe', 'marketing', 'mobile', 'contentanalytics', 'ContentAnalyticsConstants.kt')
+    kt = os.path.join(root, 'code', 'contentanalytics', 'src', 'main', 'kotlin', 'com', 'adobe', 'marketing', 'mobile', 'contentanalytics', 'ContentAnalyticsConstants.kt')
     if os.path.isfile(kt):
         updated |= update_file(kt, r'^[\s\S]*const val VERSION\s*=\s*"', version_regex, new_version)
 
