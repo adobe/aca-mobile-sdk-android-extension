@@ -1,3 +1,0 @@
-com.adobe.marketing.mobile.contentanalytics.sample.test
-style WhiteBackgroundDialogTheme
-style WhiteBackgroundTheme
