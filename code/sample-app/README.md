@@ -46,13 +46,14 @@ In your Launch property, configure Content Analytics extension:
 }
 ```
 
-### 3. Build and Run
+### 3. Open in Android Studio and run
 
-```bash
-cd sample-app
-./gradlew clean build
-./gradlew installDebug
-```
+- **Open the project:** In Android Studio choose **File → Open** and select the **`code`** folder Wait for sync to finish.
+- **Run the sample app:** In the run configurations dropdown, select **sample-app** (or **app**), pick a device/emulator, and run.
+- **From terminal (from repo root):**
+  ```bash
+  ./code/gradlew -p code sample-app:installDebug
+  ```
 
 ## Testing
 

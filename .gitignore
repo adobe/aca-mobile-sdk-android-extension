@@ -1,6 +1,7 @@
 # Gradle files
 .gradle/
 build/
+code/sample-app/build/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -56,7 +57,8 @@ jacoco.exec
 # Dex files for ART/Dalvik VM
 *.dex
 
-# Secrets properties
+# Secrets properties (root or any module; sample-app is our app module)
 app/secrets.properties
+sample-app/secrets.properties
 secrets.properties
 

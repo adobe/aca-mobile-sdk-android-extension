@@ -10,6 +10,16 @@
  * governing permissions and limitations under the License.
  */
 
+// Require JDK 17 (matches aepsdk-commons and other AEP Android extensions)
+val requiredJavaVersion = JavaVersion.VERSION_17
+if (JavaVersion.current() < requiredJavaVersion) {
+    throw GradleException(
+        "Java 17 or later is required to build this project (current: ${JavaVersion.current()}). " +
+            "Set JAVA_HOME to JDK 17 or add org.gradle.java.home=<path-to-jdk17> to gradle.properties. " +
+            "See CONTRIBUTING.md for setup."
+    )
+}
+
 pluginManagement {
     repositories {
         gradlePluginPortal()

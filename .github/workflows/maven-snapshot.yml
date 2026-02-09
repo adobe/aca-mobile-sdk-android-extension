@@ -28,6 +28,6 @@ jobs:
     secrets: inherit
     with:
       ref: ${{ inputs.ref }}
-      staging-dir: contentanalytics/build/staging-deploy
+      staging-dir: code/contentanalytics/build/staging-deploy
     
 

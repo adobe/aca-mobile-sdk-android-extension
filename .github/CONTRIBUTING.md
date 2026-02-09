@@ -52,6 +52,8 @@ Security issues shouldn't be reported on this issue tracker. Instead, [file an i
 
 ### Getting Started
 
+**Prerequisites:** **Java 17** is required. Set `JAVA_HOME` to JDK 17, or add `org.gradle.java.home=/path/to/jdk17` to `code/gradle.properties`. If you use [SDKMAN](https://sdkman.io), run `sdk env` in the repo root to use the version from `.sdkmanrc`. **Android SDK:** set `ANDROID_HOME` or create `code/local.properties` with `sdk.dir=/path/to/android/sdk` (that file is gitignored).
+
 1. **Fork the repository** to your GitHub account
 2. **Clone your fork** locally:
    ```bash
@@ -64,7 +66,7 @@ Security issues shouldn't be reported on this issue tracker. Instead, [file an i
    ```
 4. **Sync dependencies**:
    ```bash
-   ./gradlew dependencies
+   ./code/gradlew -p code dependencies
    ```
 
 ### Making Changes
@@ -78,14 +80,14 @@ Security issues shouldn't be reported on this issue tracker. Instead, [file an i
    - Follow Kotlin style guide
    - Add unit tests for new code
    - Update documentation as needed
-   - Run lint: `./gradlew lint`
+   - Run lint: `./code/gradlew -p code lint`
    - Fix any issues before committing
 
 3. **Test your changes**:
    ```bash
-   ./gradlew test                    # Run all unit tests
-   ./gradlew connectedAndroidTest   # Run instrumented tests (requires device/emulator)
-   ./gradlew build                  # Full build
+   ./code/gradlew -p code test                    # Run all unit tests
+   ./code/gradlew -p code connectedAndroidTest   # Run instrumented tests (requires device/emulator)
+   ./code/gradlew -p code build                  # Full build
    ```
 
 4. **Commit your changes**:

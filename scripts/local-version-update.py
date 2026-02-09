@@ -8,7 +8,7 @@ so it never changes 3.0.0-beta.1 -> 3.0.0. This script matches full version
 Run from repo root:
   python3 scripts/local-version-update.py 3.0.0
 
-Then: git add gradle.properties contentanalytics/.../ContentAnalyticsConstants.kt
+Then: git add code/gradle.properties code/contentanalytics/.../ContentAnalyticsConstants.kt
       git commit -m "chore: bump version to 3.0.0"
       git push origin update-version-3.0.0
 Python 3.6+ compatible.
@@ -54,12 +54,12 @@ def main():
 
     updated = False
     # gradle.properties: moduleVersion=3.0.0-beta.1 -> moduleVersion=3.0.0
-    gp = os.path.join(root, 'gradle.properties')
+    gp = os.path.join(root, 'code', 'gradle.properties')
     if os.path.isfile(gp):
         updated |= update_file(gp, r'^[\s\S]*moduleVersion\s*=\s*', version_regex, new_version)
 
     # ContentAnalyticsConstants.kt: const val VERSION = "3.0.0-beta.1" -> "3.0.0"
-    kt = os.path.join(root, 'contentanalytics/src/main/java/com/adobe/marketing/mobile/contentanalytics/ContentAnalyticsConstants.kt')
+    kt = os.path.join(root, 'code', 'contentanalytics', 'src', 'main', 'java', 'com', 'adobe', 'marketing', 'mobile', 'contentanalytics', 'ContentAnalyticsConstants.kt')
     if os.path.isfile(kt):
         updated |= update_file(kt, r'^[\s\S]*const val VERSION\s*=\s*"', version_regex, new_version)
 
