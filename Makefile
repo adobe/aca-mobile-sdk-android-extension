@@ -60,7 +60,7 @@ assemble-app:
 	(./gradlew $(TEST-APP-FOLDER-NAME):assemble)
 
 ci-publish-maven-local-jitpack: assemble-phone-release
-	(./gradlew $(EXTENSION-LIBRARY-FOLDER-NAME):publishReleasePublicationToMavenLocal -Pjitpack)
+	(./gradlew $(EXTENSION-LIBRARY-FOLDER-NAME):publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
 
 ci-publish-staging: clean
 	(./gradlew $(EXTENSION-LIBRARY-FOLDER-NAME):publish)

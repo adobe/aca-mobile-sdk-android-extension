@@ -320,25 +320,31 @@ As a maintainer, here's the complete release process:
 
 ### Required GitHub Secrets
 
-For automated releases to work, configure these secrets:
+The release workflow uses `adobe/aepsdk-commons` Android Maven release workflow. Configure these secrets (names must match exactly):
 
-- `MAVEN_CENTRAL_USERNAME` - Sonatype OSSRH username
-- `MAVEN_CENTRAL_PASSWORD` - Sonatype OSSRH password
-- `GPG_KEY_BASE64` - GPG signing key (base64 encoded)
-- `GPG_KEY_PASSWORD` - GPG key password
+- `GPG_SECRET_KEYS` - GPG private key(s), base64-encoded (e.g. `gpg --export-secret-keys KEY_ID | base64 -w0`)
+- `GPG_OWNERTRUST` - GPG ownertrust, base64-encoded (e.g. `gpg --export-ownertrust | base64 -w0`)
+- `GPG_PASSPHRASE` - Passphrase for the GPG key (used by JReleaser and by Gradle signing when present)
+- `GPG_KEY_ID` - Key ID of the GPG key used for signing (e.g. the 8-character hex or email)
+- `CENTRAL_SONATYPE_USERNAME` - Sonatype OSSRH username
+- `CENTRAL_SONATYPE_TOKEN` - Sonatype OSSRH token (not password)
+- `GOOGLE_TOKEN` - Token for Google Maven / Android dependencies if required
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
+
+If the release fails with **`gpg: signing failed: Inappropriate ioctl for device`**, the Gradle sign task is running without a passphrase (no TTY in CI). Ensure `GPG_PASSPHRASE` is set in repo secrets. If it still fails, the reusable workflow may need to pass `GPG_PASSPHRASE` into the "Generate artifacts" step so that `make ci-publish` can sign; in that case, open an issue or PR on `adobe/aepsdk-commons`.
 
 ### Setting Up Maven Central Publishing
 
 1. Create account at [Sonatype OSSRH](https://issues.sonatype.org/)
 2. Request group ID `com.adobe.marketing.mobile`
-3. Generate GPG key pair:
+3. Generate GPG key pair and export for CI:
    ```bash
    gpg --gen-key
-   gpg --export-secret-keys YOUR_KEY_ID | base64 > private-key.txt
+   gpg --export-secret-keys YOUR_KEY_ID | base64 -w0 > private-key.txt
+   gpg --export-ownertrust | base64 -w0 > ownertrust.txt
    ```
-4. Add secrets to GitHub repository settings
-5. Verify `build.gradle.kts` has publishing configuration
+4. Add the secrets above to the GitHub repository settings (Actions → Secrets)
+5. Verify `build.gradle.kts` and publishing configuration
 
 ---
 
