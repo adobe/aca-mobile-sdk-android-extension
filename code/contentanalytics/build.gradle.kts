@@ -32,6 +32,20 @@ aepLibrary {
     }
 }
 
+// Override: do not use consumer-rules.pro (file not present; avoids "Supplied consumer proguard configuration does not exist" in CI)
+android {
+    buildTypes.configureEach {
+        setConsumerProguardFiles(emptyList<Any>())
+    }
+}
+
+// Use Kotlin 1.9 language version (avoids "Language version 1.5 is deprecated" from aep-library default)
+kotlin {
+    compilerOptions {
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
+    }
+}
+
 dependencies {
     // Adobe SDK dependencies (versions from gradle.properties)
     implementation("com.adobe.marketing.mobile:core:$mavenCoreVersion")
