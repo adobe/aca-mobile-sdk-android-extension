@@ -7,34 +7,21 @@
  * Unless required by applicable law or agreed to in writing, software distributed under
  * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
  * OF ANY KIND, either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
+ * governing permissions and limitations in the License.
  */
+
+apply(plugin = "aep-license")
 
 buildscript {
     repositories {
+        gradlePluginPortal()
         google()
         mavenCentral()
-        gradlePluginPortal()  // Required for AEPSDK Commons dependencies
         maven { url = uri("https://jitpack.io") }
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.2.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
-        classpath("com.github.adobe:aepsdk-commons:gp-3.0.0")  // Same version as Edge Android
+        classpath("com.github.adobe:aepsdk-commons:gp-3.0.0")
+        // Kotlin Gradle plugin so IDE can resolve kotlin { compilerOptions { } } in subprojects
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
     }
 }
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven {
-            url = uri("https://maven.adobe.io/repository/releases/")
-        }
-    }
-}
-
-tasks.register("clean", Delete::class) {
-    delete(rootProject.layout.buildDirectory)
-}
-
