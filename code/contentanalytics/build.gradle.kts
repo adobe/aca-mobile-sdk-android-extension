@@ -47,10 +47,13 @@ kotlin {
 }
 
 dependencies {
-    // Adobe SDK dependencies (versions from gradle.properties)
-    implementation("com.adobe.marketing.mobile:core:$mavenCoreVersion")
-    implementation("com.adobe.marketing.mobile:edge:$mavenEdgeVersion")
-    implementation("com.adobe.marketing.mobile:edgeidentity:$mavenEdgeIdentityVersion")
+    // Use the BOM to manage Adobe Mobile SDK versions
+    implementation(platform("com.adobe.marketing.mobile:sdk-bom:3.+"))
+    
+    // Adobe SDK dependencies (versions managed by BOM)
+    implementation("com.adobe.marketing.mobile:core")
+    implementation("com.adobe.marketing.mobile:edge")
+    implementation("com.adobe.marketing.mobile:edgeidentity")
 
     // Testing dependencies - using older versions compatible with JVM 1.8
     testImplementation("io.mockk:mockk:1.12.0")  // Last version with JVM 1.8 support

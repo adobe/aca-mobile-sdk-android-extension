@@ -34,8 +34,8 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         mavenLocal()
+        maven { url = uri("https://central.sonatype.com/repository/maven-snapshots/") }
         maven { url = uri("https://jitpack.io") }
-        maven { url = uri("https://maven.adobe.io/repository/releases/") }
     }
 }
 
