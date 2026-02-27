@@ -337,7 +337,7 @@ Managed through Adobe Data Collection (Launch):
 | `contentanalytics.configId` | String | - | Custom datastream for Content Analytics events |
 | `contentanalytics.batchingEnabled` | Boolean | `true` | Enable event batching |
 | `contentanalytics.maxBatchSize` | Integer | `10` | Max events per batch |
-| `contentanalytics.batchFlushInterval` | Long | `2000` | Flush interval (milliseconds) |
+| `contentanalytics.batchFlushInterval` | Long | `2000` | Flush interval in **milliseconds** (e.g. `2000` = 2s). |
 | `contentanalytics.trackExperiences` | Boolean | `true` | Enable experience tracking |
 | `contentanalytics.excludedAssetLocationsRegexp` | String | - | Asset location regex pattern to exclude |
 | `contentanalytics.excludedAssetUrlsRegexp` | String | - | Asset URL regex pattern to exclude |

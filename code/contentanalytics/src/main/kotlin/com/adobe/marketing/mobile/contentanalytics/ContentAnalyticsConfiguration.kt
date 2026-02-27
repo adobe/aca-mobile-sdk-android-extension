@@ -35,7 +35,7 @@ internal data class ContentAnalyticsConfiguration(
     val batchingEnabled: Boolean = ContentAnalyticsConstants.Defaults.BATCHING_ENABLED,
     val maxBatchSize: Int = ContentAnalyticsConstants.Defaults.DEFAULT_BATCH_SIZE,
     val batchFlushInterval: Long = ContentAnalyticsConstants.Defaults.BATCH_FLUSH_INTERVAL,
-    val maxWaitTime: Double = (ContentAnalyticsConstants.Defaults.BATCH_FLUSH_INTERVAL * ContentAnalyticsConstants.Defaults.MAX_WAIT_TIME_MULTIPLIER) / 1000.0,
+    val maxWaitTimeMs: Long = (ContentAnalyticsConstants.Defaults.BATCH_FLUSH_INTERVAL * ContentAnalyticsConstants.Defaults.MAX_WAIT_TIME_MULTIPLIER).toLong(),
     
     val debugLogging: Boolean = false
 ) {
