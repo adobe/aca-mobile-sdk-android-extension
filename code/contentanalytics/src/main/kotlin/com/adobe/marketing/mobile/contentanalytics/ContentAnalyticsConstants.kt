@@ -21,7 +21,7 @@ internal object ContentAnalyticsConstants {
     const val EXTENSION_NAME = "com.adobe.contentanalytics"
     const val FRIENDLY_NAME = "Content Analytics"
     // VERSION is updated by the Update Versions workflow (aepsdk-commons expects const val VERSION)
-    const val VERSION = "3.0.0"
+    const val VERSION = "3.0.1"
     const val EXTENSION_VERSION = VERSION
     const val LOG_TAG = FRIENDLY_NAME
     const val DATASTORE_NAME = EXTENSION_NAME
@@ -144,7 +144,7 @@ internal object ContentAnalyticsConstants {
         const val MIN_BATCH_SIZE = 1
         const val MAX_BATCH_SIZE_LIMIT = 100
         const val BATCH_FLUSH_INTERVAL = 2000L // milliseconds
-        const val DEFAULT_MAX_WAIT_TIME = 5.0 // seconds
+        const val DEFAULT_MAX_WAIT_TIME_MS = 5000L // milliseconds (batchFlushInterval * 2.5)
         const val MAX_WAIT_TIME_MULTIPLIER = 2.5
         
         // Feature flags

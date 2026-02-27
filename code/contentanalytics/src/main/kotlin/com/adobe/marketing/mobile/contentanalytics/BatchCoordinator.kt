@@ -292,11 +292,11 @@ internal class BatchCoordinator(
             return
         }
         
-        // Check if we've exceeded the maximum wait time
+        // Check if we've exceeded the maximum wait time (both in milliseconds)
         firstTrackingTime?.let { firstTime ->
-            val timeElapsed = (Date().time - firstTime.time) / 1000.0
-            if (timeElapsed >= config.maxWaitTime) {
-                Log.debug(LOG_TAG, TAG, "Max wait time exceeded ($timeElapsed >= ${config.maxWaitTime}s), flushing")
+            val timeElapsedMs = Date().time - firstTime.time
+            if (timeElapsedMs >= config.maxWaitTimeMs) {
+                Log.debug(LOG_TAG, TAG, "Max wait time exceeded ($timeElapsedMs >= ${config.maxWaitTimeMs}ms), flushing")
                 performFlush()
             }
         }

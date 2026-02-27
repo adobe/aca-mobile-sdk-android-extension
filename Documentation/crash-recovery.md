@@ -182,7 +182,7 @@ This avoids state sync issues - we just count events on flush. If the app crashe
 
 **Parameters:**
 - `maxBatchSize`: Event count threshold (default: 10)
-- `batchFlushInterval`: Timer interval for periodic flush in ms (default: 2000ms = 2s)
+- `batchFlushInterval`: Timer interval for periodic flush in ms (default: 2000 ms = 2s). Max wait time is derived (2.5× = 5000 ms).
 - `batchingEnabled`: Set to `false` for immediate dispatch (no batching)
 
 ## Performance Characteristics
@@ -397,5 +397,5 @@ Track these metrics for health monitoring:
 ---
 
 **Last Updated:** 2026-01-29  
-**Version:** 5.0.0  
+**Version:** 3.0.1  
 **Platform:** Android

@@ -70,7 +70,7 @@ class BatchCoordinatorInstrumentationTest {
             batchingEnabled = true,
             maxBatchSize = 3,
             batchFlushInterval = 10000, // Long interval so tests control flushing
-            maxWaitTime = 20.0 // seconds
+            maxWaitTimeMs = 20000L
         )
         state.updateConfiguration(config)
         
