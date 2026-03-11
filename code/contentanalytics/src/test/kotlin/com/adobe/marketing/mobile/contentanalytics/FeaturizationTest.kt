@@ -163,6 +163,7 @@ class FeaturizationTest {
         assertEquals("OrgId should match", orgId, experienceContent.orgId)
         assertEquals("Datastream ID should match", datastreamId, experienceContent.datastreamId)
         assertEquals("Experience ID should match", experienceId, experienceContent.experienceId)
+        assertEquals("Channel should be mobile", "mobile", experienceContent.channel)
         assertNotNull("Content should not be null", experienceContent.content)
     }
     
@@ -187,6 +188,7 @@ class FeaturizationTest {
         assertEquals("OrgId should match", "TEST_ORG@AdobeOrg", experienceContent.orgId)
         assertEquals("Datastream ID should match", "test-datastream", experienceContent.datastreamId)
         assertEquals("Experience ID should match", "test-experience-id", experienceContent.experienceId)
+        assertEquals("Channel should be mobile", "mobile", experienceContent.channel)
     }
     
     @Test
@@ -212,9 +214,11 @@ class FeaturizationTest {
         assertTrue("Should contain orgId key", map.containsKey("orgId"))
         assertTrue("Should contain datastreamId key", map.containsKey("datastreamId"))
         assertTrue("Should contain experienceId key", map.containsKey("experienceId"))
+        assertTrue("Should contain channel key", map.containsKey("channel"))
         assertEquals("OrgId should match", "TEST_ORG@AdobeOrg", map["orgId"])
         assertEquals("Datastream ID should match", "test-datastream", map["datastreamId"])
         assertEquals("Experience ID should match", "test-experience-id", map["experienceId"])
+        assertEquals("Channel should be mobile", "mobile", map["channel"])
     }
     
     @Test

@@ -97,14 +97,16 @@ internal data class ExperienceContent(
     val content: ContentData,
     val orgId: String,
     val datastreamId: String,
-    val experienceId: String
+    val experienceId: String,
+    val channel: String = "mobile"
 ) {
     fun toMap(): Map<String, Any> {
         return mapOf(
             "content" to content.toMap(),
             "orgId" to orgId,
             "datastreamId" to datastreamId,
-            "experienceId" to experienceId
+            "experienceId" to experienceId,
+            "channel" to channel
         )
     }
     
