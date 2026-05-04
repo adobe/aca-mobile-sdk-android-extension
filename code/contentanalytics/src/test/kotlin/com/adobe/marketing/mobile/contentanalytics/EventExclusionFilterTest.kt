@@ -182,16 +182,206 @@ class EventExclusionFilterTest {
         assertFalse("Should not exclude when location is null", filter.shouldExcludeAsset(event))
     }
     
+    // Exclude Assets From Untracked Experience
+    //
+    // Primary path: attribution via registered experience definition.
+    // Assets are attributed to experiences through the definition payload (asset URL list).
+    // All definitions are stored (including those for excluded experiences) so that we can
+    // look up which experience owns a given asset URL when the asset event arrives later.
+
+    @Test
+    fun `shouldExcludeAsset - definition path - asset in excluded experience definition returns true`() {
+        // Flag enabled, an excluded-experience definition lists the asset URL.
+        // Location is set via updateExperienceLocation (from a VIEW event), not at registration time.
+        val config = ContentAnalyticsConfiguration(
+            excludedExperienceLocationsRegexp = "^test-.*",
+            excludeAssetsFromUntrackedExperience = true
+        )
+        stateManager.updateConfiguration(config)
+
+        // Register definition (location-independent)
+        stateManager.registerExperienceDefinition(
+            ExperienceDefinition(
+                experienceId = "exp-excluded",
+                assets = listOf("https://example.com/image.jpg"),
+                texts = emptyList(),
+                ctas = null
+            )
+        )
+        // Simulate a VIEW event setting the last-seen location (matches exclusion regexp)
+        stateManager.updateExperienceLocation("exp-excluded", "test-environment")
+
+        // Asset event has NO experienceLocation — attribution is via the definition above
+        val event = createAssetEvent(
+            assetURL = "https://example.com/image.jpg",
+            assetLocation = "home"
+        )
+
+        assertTrue(
+            "Asset in an excluded experience's definition should be excluded (primary attribution path)",
+            filter.shouldExcludeAsset(event)
+        )
+    }
+
+    @Test
+    fun `shouldExcludeAsset - definition path - asset in tracked experience definition returns false`() {
+        // Flag enabled, but the experience that owns the asset is NOT excluded
+        val config = ContentAnalyticsConfiguration(
+            excludedExperienceLocationsRegexp = "^test-.*",
+            excludeAssetsFromUntrackedExperience = true
+        )
+        stateManager.updateConfiguration(config)
+
+        stateManager.registerExperienceDefinition(
+            ExperienceDefinition(
+                experienceId = "exp-tracked",
+                assets = listOf("https://example.com/image.jpg"),
+                texts = emptyList(),
+                ctas = null
+            )
+        )
+        // VIEW event sets location to a non-excluded value
+        stateManager.updateExperienceLocation("exp-tracked", "production-page")
+
+        val event = createAssetEvent(
+            assetURL = "https://example.com/image.jpg",
+            assetLocation = "home"
+        )
+
+        assertFalse(
+            "Asset in a non-excluded experience's definition should be tracked",
+            filter.shouldExcludeAsset(event)
+        )
+    }
+
+    @Test
+    fun `shouldExcludeAsset - definition path - asset not in any definition returns false`() {
+        // Flag enabled, but no definition has been registered for this asset URL
+        val config = ContentAnalyticsConfiguration(
+            excludedExperienceLocationsRegexp = "^test-.*",
+            excludeAssetsFromUntrackedExperience = true
+        )
+        stateManager.updateConfiguration(config)
+
+        // No definitions registered
+        val event = createAssetEvent(
+            assetURL = "https://example.com/unknown.jpg",
+            assetLocation = "home"
+        )
+
+        assertFalse(
+            "Asset not present in any definition should be tracked (cannot infer exclusion)",
+            filter.shouldExcludeAsset(event)
+        )
+    }
+
+    @Test
+    fun `shouldExcludeAsset - definition path - flag false asset in excluded definition returns false`() {
+        // When flag is disabled, experience exclusion must not affect assets at all
+        val config = ContentAnalyticsConfiguration(
+            excludedExperienceLocationsRegexp = "^test-.*",
+            excludeAssetsFromUntrackedExperience = false
+        )
+        stateManager.updateConfiguration(config)
+
+        stateManager.registerExperienceDefinition(
+            ExperienceDefinition(
+                experienceId = "exp-excluded",
+                assets = listOf("https://example.com/image.jpg"),
+                texts = emptyList(),
+                ctas = null
+            )
+        )
+        stateManager.updateExperienceLocation("exp-excluded", "test-environment")
+
+        val event = createAssetEvent(
+            assetURL = "https://example.com/image.jpg",
+            assetLocation = "home"
+        )
+
+        assertFalse(
+            "Experience exclusion must not affect assets when flag is false",
+            filter.shouldExcludeAsset(event)
+        )
+    }
+
+    // Fallback path: asset event itself carries experienceLocation (no definition registered).
+    // Used when integrations pass a contextual location directly on the asset event.
+
+    @Test
+    fun `shouldExcludeAsset - fallback path - asset event carries excluded experience location returns true`() {
+        val config = ContentAnalyticsConfiguration(
+            excludedExperienceLocationsRegexp = "^test-.*",
+            excludeAssetsFromUntrackedExperience = true
+        )
+        stateManager.updateConfiguration(config)
+
+        // No definition registered; the asset event itself carries the excluded location
+        val event = createAssetEvent(
+            assetURL = "https://example.com/image.jpg",
+            assetLocation = "home",
+            experienceLocation = "test-environment"
+        )
+
+        assertTrue(
+            "Asset event carrying an excluded experienceLocation should be excluded even without a registered definition",
+            filter.shouldExcludeAsset(event)
+        )
+    }
+
+    @Test
+    fun `shouldExcludeAsset - fallback path - asset event carries non-excluded experience location returns false`() {
+        val config = ContentAnalyticsConfiguration(
+            excludedExperienceLocationsRegexp = "^test-.*",
+            excludeAssetsFromUntrackedExperience = true
+        )
+        stateManager.updateConfiguration(config)
+
+        val event = createAssetEvent(
+            assetURL = "https://example.com/image.jpg",
+            assetLocation = "home",
+            experienceLocation = "production-page"
+        )
+
+        assertFalse(
+            "Asset event with non-excluded experienceLocation should be tracked",
+            filter.shouldExcludeAsset(event)
+        )
+    }
+
+    @Test
+    fun `shouldExcludeAsset - no experience location and no definition returns false`() {
+        // Flag enabled, but no definition and no location on asset event → keep tracking
+        val config = ContentAnalyticsConfiguration(
+            excludedExperienceLocationsRegexp = "^test-.*",
+            excludeAssetsFromUntrackedExperience = true
+        )
+        stateManager.updateConfiguration(config)
+
+        val event = createAssetEvent(
+            assetURL = "https://example.com/image.jpg",
+            assetLocation = "home",
+            experienceLocation = null
+        )
+
+        assertFalse(
+            "Asset with no experience location and no registered definition should be tracked",
+            filter.shouldExcludeAsset(event)
+        )
+    }
+    
     // Helper Methods
     
     private fun createAssetEvent(
         assetURL: String?,
-        assetLocation: String?
+        assetLocation: String?,
+        experienceLocation: String? = null
     ): Event {
         val data = mutableMapOf<String, Any?>()
         
         assetURL?.let { data["assetURL"] = it }
         assetLocation?.let { data["assetLocation"] = it }
+        experienceLocation?.let { data["experienceLocation"] = it }
         data["action"] = ContentAnalyticsConstants.ActionType.VIEW
         
         return Event.Builder(

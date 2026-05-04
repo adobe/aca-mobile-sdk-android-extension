@@ -1,9 +1,16 @@
 # Release Notes
 
+## 3.0.2 (May 4, 2026)
+
+### Bug Fixes
+- **Batch timing alignment:** `maxWaitTimeMs` now correctly uses milliseconds, consistent with `batchFlushInterval` and the iOS SDK.
+
+---
+
 ## 3.0.1 (February 23, 2026)
 
 ### Bug Fixes
-- **Batching configuration alignment:** `maxWaitTime` now uses milliseconds (was seconds). Both `batchFlushInterval` and `maxWaitTime` use milliseconds on iOS and Android, matching the Launch extension.
+- **Batching configuration alignment:** `maxWaitTime` now uses milliseconds (was seconds). Both `batchFlushInterval` and `maxWaitTime` use milliseconds matching the Launch extension.
 
 ---
 

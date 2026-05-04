@@ -13,14 +13,16 @@
 package com.adobe.marketing.mobile.contentanalytics
 
 /**
- * Definition of an experience with all its content
+ * Definition of an experience with all its content.
+ * [experienceLocation] is used for excludeAssetsFromUntrackedExperience (attribute assets to excluded experiences).
  */
 data class ExperienceDefinition(
     val experienceId: String,
     val assets: List<String>,
     val texts: List<ContentItem>,
     val ctas: List<ContentItem>?,
-    val sentToFeaturization: Boolean = false
+    val sentToFeaturization: Boolean = false,
+    val experienceLocation: String? = null
 ) {
     /**
      * Convert to map for event data
@@ -57,12 +59,15 @@ data class ExperienceDefinition(
             val ctas = ContentItem.fromList(
                 map[ContentAnalyticsConstants.EventDataKeys.CTAS] as? List<*>
             ).takeIf { it.isNotEmpty() }
-            
+
+            val experienceLocation = map["experienceLocation"] as? String
+
             return ExperienceDefinition(
                 experienceId = experienceId,
                 assets = assets,
                 texts = texts,
-                ctas = ctas
+                ctas = ctas,
+                experienceLocation = experienceLocation
             )
         }
     }

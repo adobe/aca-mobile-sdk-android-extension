@@ -40,6 +40,29 @@ internal class EventExclusionFilter(
             return true
         }
 
+        // When excludeAssetsFromUntrackedExperience is true, exclude assets that belong to excluded experiences.
+        // Attribution: experiences are registered with asset URLs; we store all definitions (including excluded) so we can look up by asset.
+        val config = state.configuration
+        if (config?.excludeAssetsFromUntrackedExperience == true) {
+            val assetURL = event.assetURL
+            if (!assetURL.isNullOrEmpty()) {
+                val definitionsContainingAsset = state.getAllExperienceDefinitions().filter { it.assets.contains(assetURL) }
+                for (definition in definitionsContainingAsset) {
+                    val location = definition.experienceLocation
+                    if (!location.isNullOrEmpty() && config.shouldExcludeExperience(location)) {
+                        Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "Asset excluded (belongs to untracked experience): $location")
+                        return true
+                    }
+                }
+            }
+            // Also exclude if asset event carries an excluded experience location (e.g. no definition was registered)
+            val eventLocation = event.experienceLocation
+            if (!eventLocation.isNullOrEmpty() && config.shouldExcludeExperience(eventLocation)) {
+                Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "Asset excluded (experience untracked): $eventLocation")
+                return true
+            }
+        }
+
         return false
     }
 

@@ -53,6 +53,14 @@ internal class ContentAnalyticsStateManager(
     fun registerExperienceDefinition(definition: ExperienceDefinition) = lock.write {
         definitionCache.store(definition)
     }
+
+    /** Updates the last-seen location on an existing definition.
+     *  Called from VIEW events (before exclusion) so asset exclusion can check
+     *  the experience's location without tying location to definition registration. */
+    fun updateExperienceLocation(experienceId: String, location: String) = lock.write {
+        val definition = definitionCache.get(experienceId) ?: return@write
+        definitionCache.update(definition.copy(experienceLocation = location))
+    }
     
     fun getExperienceDefinition(experienceId: String): ExperienceDefinition? = lock.read {
         val definition = definitionCache.get(experienceId)
