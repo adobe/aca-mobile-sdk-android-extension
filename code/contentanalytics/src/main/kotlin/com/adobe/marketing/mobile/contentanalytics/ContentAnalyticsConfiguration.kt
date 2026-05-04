@@ -22,6 +22,8 @@ internal data class ContentAnalyticsConfiguration(
     val excludedAssetLocationsRegexp: String? = null,
     val excludedAssetUrlsRegexp: String? = null,
     val excludedExperienceLocationsRegexp: String? = null,
+    /** When true, do not collect assets that belong to excluded experiences (default: false) */
+    val excludeAssetsFromUntrackedExperience: Boolean = false,
     
     val experienceCloudOrgId: String? = null,
     val datastreamId: String? = null,
@@ -137,6 +139,8 @@ internal data class ContentAnalyticsConfiguration(
                 excludedAssetLocationsRegexp = data[ContentAnalyticsConstants.ConfigurationKeys.EXCLUDED_ASSET_LOCATIONS_REGEXP] as? String,
                 excludedAssetUrlsRegexp = data[ContentAnalyticsConstants.ConfigurationKeys.EXCLUDED_ASSET_URLS_REGEXP] as? String,
                 excludedExperienceLocationsRegexp = data[ContentAnalyticsConstants.ConfigurationKeys.EXCLUDED_EXPERIENCE_LOCATIONS_REGEXP] as? String,
+                excludeAssetsFromUntrackedExperience = data[ContentAnalyticsConstants.ConfigurationKeys.EXCLUDE_ASSETS_FROM_UNTRACKED_EXPERIENCE] as? Boolean
+                    ?: false,
                 
                 experienceCloudOrgId = (data[ContentAnalyticsConstants.ConfigurationKeys.EXPERIENCE_CLOUD_ORG_ID] 
                     ?: data[ContentAnalyticsConstants.ConfigurationKeys.EXPERIENCE_CLOUD_ORG]) as? String,

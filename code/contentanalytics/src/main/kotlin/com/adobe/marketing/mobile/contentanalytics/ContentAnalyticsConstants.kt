@@ -21,7 +21,7 @@ internal object ContentAnalyticsConstants {
     const val EXTENSION_NAME = "com.adobe.contentanalytics"
     const val FRIENDLY_NAME = "Content Analytics"
     // VERSION is updated by the Update Versions workflow (aepsdk-commons expects const val VERSION)
-    const val VERSION = "3.0.1"
+    const val VERSION = "3.0.2"
     const val EXTENSION_VERSION = VERSION
     const val LOG_TAG = FRIENDLY_NAME
     const val DATASTORE_NAME = EXTENSION_NAME
@@ -94,6 +94,7 @@ internal object ContentAnalyticsConstants {
         const val EXCLUDED_ASSET_LOCATIONS_REGEXP = "contentanalytics.excludedAssetLocationsRegexp"
         const val EXCLUDED_ASSET_URLS_REGEXP = "contentanalytics.excludedAssetUrlsRegexp"
         const val EXCLUDED_EXPERIENCE_LOCATIONS_REGEXP = "contentanalytics.excludedExperienceLocationsRegexp"
+        const val EXCLUDE_ASSETS_FROM_UNTRACKED_EXPERIENCE = "contentanalytics.excludeAssetsFromUntrackedExperience"
         const val EXPERIENCE_CLOUD_ORG_ID = "contentanalytics.experienceCloudOrgId"
         const val DATASTREAM_ID = "contentanalytics.configId"
         const val REGION = "contentanalytics.region"

@@ -151,7 +151,9 @@ class ContentAnalyticsOrchestratorTest {
         
         // Then
         verify(batchCoordinator).addExperienceEvent(event)
-        assertEquals(definition, state.getExperienceDefinition("test-exp"))
+        // Definition content is stored correctly, and the last-seen location is set by
+        // captureExperienceLocation (from the VIEW event), not at definition registration time.
+        assertEquals(definition.copy(experienceLocation = "homepage"), state.getExperienceDefinition("test-exp"))
     }
     
     @Test
@@ -172,6 +174,88 @@ class ContentAnalyticsOrchestratorTest {
         verify(batchCoordinator, never()).addExperienceEvent(any())
     }
     
+    // Experience Location Capture (captureExperienceLocation)
+    // Location is NOT stored at definition registration time. The orchestrator captures it from
+    // VIEW events BEFORE the exclusion filter, so excluded events still write the location.
+
+    @Test
+    fun `captureExperienceLocation - view event updates stored definition location`() {
+        // Given - definition registered without a location
+        val config = ContentAnalyticsConfiguration(batchingEnabled = true, trackExperiences = true)
+        state.updateConfiguration(config)
+
+        state.registerExperienceDefinition(
+            ExperienceDefinition(
+                experienceId = "hero",
+                assets = listOf("https://example.com/hero.jpg"),
+                texts = emptyList(),
+                ctas = null
+            )
+        )
+        assertNull(state.getExperienceDefinition("hero")?.experienceLocation)
+
+        val viewEvent = createExperienceEvent("hero", "homepage", ContentAnalyticsConstants.ActionType.VIEW)
+
+        // When
+        orchestrator.processExperienceEvent(viewEvent)
+
+        // Then
+        assertEquals("homepage", state.getExperienceDefinition("hero")?.experienceLocation)
+    }
+
+    @Test
+    fun `captureExperienceLocation - excluded view event still captures location`() {
+        // Given - exclusion filter returns true (experience is excluded)
+        val config = ContentAnalyticsConfiguration(batchingEnabled = true, trackExperiences = true)
+        state.updateConfiguration(config)
+
+        state.registerExperienceDefinition(
+            ExperienceDefinition(
+                experienceId = "banner",
+                assets = listOf("https://example.com/banner.jpg"),
+                texts = emptyList(),
+                ctas = null
+            )
+        )
+
+        val excludedViewEvent = createExperienceEvent("banner", "test-admin-panel", ContentAnalyticsConstants.ActionType.VIEW)
+        whenever(eventExclusionFilter.shouldExcludeExperience(excludedViewEvent)).thenReturn(true)
+
+        // When
+        orchestrator.processExperienceEvent(excludedViewEvent)
+
+        // Then - event was excluded but location was still captured before the filter ran
+        verify(batchCoordinator, never()).addExperienceEvent(any())
+        // Location must be captured even when the experience event itself is excluded
+        assertEquals("test-admin-panel", state.getExperienceDefinition("banner")?.experienceLocation)
+    }
+
+    @Test
+    fun `captureExperienceLocation - second view at different location overwrites first`() {
+        // Given - same experience viewed at two different locations
+        val config = ContentAnalyticsConfiguration(batchingEnabled = true, trackExperiences = true)
+        state.updateConfiguration(config)
+
+        state.registerExperienceDefinition(
+            ExperienceDefinition(
+                experienceId = "card",
+                assets = listOf("https://example.com/card.jpg"),
+                texts = emptyList(),
+                ctas = null
+            )
+        )
+
+        val firstView = createExperienceEvent("card", "page-a", ContentAnalyticsConstants.ActionType.VIEW)
+        val secondView = createExperienceEvent("card", "page-b", ContentAnalyticsConstants.ActionType.VIEW)
+
+        // When
+        orchestrator.processExperienceEvent(firstView)
+        orchestrator.processExperienceEvent(secondView)
+
+        // Then - most recently seen location wins
+        assertEquals("page-b", state.getExperienceDefinition("card")?.experienceLocation)
+    }
+
     @Test
     fun `test flush delegates to BatchCoordinator`() {
         // When

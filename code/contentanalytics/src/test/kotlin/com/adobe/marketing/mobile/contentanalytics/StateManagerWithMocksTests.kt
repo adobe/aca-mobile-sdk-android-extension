@@ -133,6 +133,55 @@ class StateManagerWithMocksTests {
         assertFalse(result)
     }
     
+    // MARK: - Experience Location Capture Tests
+    // Location is set from VIEW events, not at definition registration time.
+
+    @Test
+    fun `updateExperienceLocation updates location on existing definition`() {
+        // Given - definition registered without a location
+        val definition = createDefinition("exp1")
+        mockCache.definitions["exp1"] = definition
+        assertNull(definition.experienceLocation)
+
+        // When
+        stateManager.updateExperienceLocation("exp1", "homepage")
+
+        // Then
+        val updated = mockCache.definitions["exp1"]
+        assertEquals("homepage", updated?.experienceLocation)
+        assertEquals(1, mockCache.updateCallCount)
+    }
+
+    @Test
+    fun `updateExperienceLocation with no definition does not crash`() {
+        // Given - no definition registered for "exp-unknown"
+        // When/Then - should complete gracefully without crash
+        stateManager.updateExperienceLocation("exp-unknown", "homepage")
+        assertEquals(0, mockCache.updateCallCount)
+    }
+
+    @Test
+    fun `updateExperienceLocation preserves other definition fields`() {
+        // Given
+        val definition = ExperienceDefinition(
+            experienceId = "exp-preserve",
+            assets = listOf("https://example.com/a.jpg", "https://example.com/b.jpg"),
+            texts = listOf(ContentItem("Title")),
+            ctas = listOf(ContentItem("CTA"))
+        )
+        mockCache.definitions["exp-preserve"] = definition
+
+        // When
+        stateManager.updateExperienceLocation("exp-preserve", "some-page")
+
+        // Then - only location changes; all other fields stay intact
+        val updated = mockCache.definitions["exp-preserve"]
+        assertEquals(listOf("https://example.com/a.jpg", "https://example.com/b.jpg"), updated?.assets)
+        assertEquals("Title", updated?.texts?.firstOrNull()?.value)
+        assertEquals("CTA", updated?.ctas?.firstOrNull()?.value)
+        assertEquals("some-page", updated?.experienceLocation)
+    }
+
     // MARK: - Configuration Tests
     
     @Test

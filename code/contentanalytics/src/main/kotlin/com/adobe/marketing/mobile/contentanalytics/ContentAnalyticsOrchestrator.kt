@@ -69,12 +69,20 @@ internal class ContentAnalyticsOrchestrator(
             return
         }
 
+        // Store definition payload (assets/texts/CTAs) so we can attribute assets to experiences later.
+        // Must happen before exclusion so definitions for excluded experiences are still cached.
+        preprocessExperienceDefinition(event)
+
+        // Update the last-seen location for this experience from view/click events.
+        // Location is NOT part of definition registration — the same experience can be viewed at
+        // different locations. Must happen before exclusion so the location is captured even when
+        // the view event itself is filtered out.
+        captureExperienceLocation(event)
+
         if (eventExclusionFilter.shouldExcludeExperience(event)) {
             Log.debug(LOG_TAG, TAG, "Experience excluded by pattern")
             return
         }
-
-        preprocessExperienceDefinition(event)
 
         if (event.experienceAction?.isDefinitionAction() == true) {
             return
@@ -110,11 +118,21 @@ internal class ContentAnalyticsOrchestrator(
         Log.trace(LOG_TAG, TAG, "Processed $entityType event")
     }
 
+    /** Stores the experience definition payload (assets/texts/CTAs) for asset attribution.
+     *  Location is handled separately via [captureExperienceLocation]. */
     private fun preprocessExperienceDefinition(event: Event) {
         event.experienceDefinition?.let { definition ->
             state.registerExperienceDefinition(definition)
             Log.debug(LOG_TAG, TAG, "Stored experience definition: ${definition.experienceId} with ${definition.assets.size} assets")
         }
+    }
+
+    /** Updates the last-seen location for an experience from any event that carries one.
+     *  Called before exclusion filtering so the location is captured even for excluded events. */
+    private fun captureExperienceLocation(event: Event) {
+        val experienceId = event.experienceId ?: return
+        val location = event.experienceLocation ?: return
+        state.updateExperienceLocation(experienceId, location)
     }
 
     fun flush() {
