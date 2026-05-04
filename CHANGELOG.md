@@ -2,6 +2,9 @@
 
 ## 3.0.2 (May 4, 2026)
 
+### Features
+- **Exclude assets from untracked experiences:** New configuration flag `excludeAssetsFromUntrackedExperience` — when enabled, asset events belonging to excluded experiences are suppressed, preventing orphaned asset tracking.
+
 ### Bug Fixes
 - **Batch timing alignment:** `maxWaitTimeMs` now correctly uses milliseconds, consistent with `batchFlushInterval` and the iOS SDK.
 
