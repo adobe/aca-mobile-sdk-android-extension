@@ -76,18 +76,40 @@ val Event.experienceAction: String?
     get() = eventData?.get(ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ACTION) as? String
 
 /**
- * Get experience definition from event data
+ * Get experience definition from event data.
+ *
+ * Supports two layouts:
+ *  1. Nested under [ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_DEFINITION] (used by some
+ *     internal/test callers).
+ *  2. Top-level keys (experienceId, assets, texts, ctas) — the layout produced by the public
+ *     [ContentAnalytics.registerExperience] API. Matches iOS [Event.extractExperienceDefinitionData].
+ *
+ * The top-level layout is only resolved for events whose action is "definition" so that view/click
+ * events (which carry experienceId but no assets/texts/ctas) cannot overwrite a previously
+ * registered definition with an empty one.
  */
 val Event.experienceDefinition: ExperienceDefinition?
     get() {
-        val rawMap = eventData?.get(ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_DEFINITION) as? Map<*, *>
-            ?: return null
-        val stringKeyedMap = mutableMapOf<String, Any?>()
-        for ((key, value) in rawMap) {
-            val stringKey = key as? String ?: continue
-            stringKeyedMap[stringKey] = value
+        val data = eventData ?: return null
+
+        val nested = data[ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_DEFINITION] as? Map<*, *>
+        if (nested != null) {
+            val stringKeyedMap = mutableMapOf<String, Any?>()
+            for ((key, value) in nested) {
+                val stringKey = key as? String ?: continue
+                stringKeyedMap[stringKey] = value
+            }
+            return ExperienceDefinition.fromMap(stringKeyedMap)
         }
-        return ExperienceDefinition.fromMap(stringKeyedMap)
+
+        if (experienceAction?.isDefinitionAction() != true) {
+            return null
+        }
+        if (data[ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ID] == null) {
+            return null
+        }
+        @Suppress("UNCHECKED_CAST")
+        return ExperienceDefinition.fromMap(data as Map<String, Any?>)
     }
 
 /**

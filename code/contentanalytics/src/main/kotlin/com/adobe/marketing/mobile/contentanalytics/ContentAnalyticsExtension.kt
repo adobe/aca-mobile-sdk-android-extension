@@ -252,18 +252,12 @@ internal class ContentAnalyticsExtension(extensionApi: ExtensionApi) : Extension
     
     private fun parseConfiguration(configData: Map<String, Any?>): Boolean {
         return try {
-            val strippedConfig = configData.mapKeys { (key, _) ->
-                if (key.startsWith("contentanalytics.")) {
-                    key.removePrefix("contentanalytics.")
-                } else {
-                    key
-                }
-            }
-            
-            Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "Parsing configuration | Keys found: ${strippedConfig.keys}")
-            
-            // Parse and update configuration (will use defaults if empty)
-            val config = ContentAnalyticsConfiguration.fromEventData(strippedConfig)
+            Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "Parsing configuration | Keys found: ${configData.keys}")
+
+            // Parse and update configuration (will use defaults if empty).
+            // fromEventData looks up fully-qualified keys (e.g., "contentanalytics.maxBatchSize"),
+            // so configData is passed through unchanged to preserve the Launch payload format.
+            val config = ContentAnalyticsConfiguration.fromEventData(configData)
             stateManager.updateConfiguration(config)
             
             // Update orchestrator (which handles business logic and delegates to batch coordinator)

@@ -159,10 +159,11 @@ class ContentAnalyticsEndToEndTest {
         assertEquals(definition.assets, storedDef?.assets)
         assertEquals(definition.texts, storedDef?.texts)
         assertEquals(definition.ctas, storedDef?.ctas)
-        
-        // Verify definition was marked as sent to featurization
-        assertTrue(state.hasExperienceDefinitionBeenSent(experienceId))
-        
+
+        // Featurization is intentionally not wired in this test (no datastreamId / edgeDomain /
+        // IMS org / hit queue), so the definition is not expected to be marked as sent here.
+        // Featurization wiring is covered in dedicated FeaturizationTest cases.
+
         // Verify Edge event
         val edgeEvent = dispatchedEvents.first()
         val xdm = edgeEvent.eventData?.get("xdm") as? Map<*, *>
