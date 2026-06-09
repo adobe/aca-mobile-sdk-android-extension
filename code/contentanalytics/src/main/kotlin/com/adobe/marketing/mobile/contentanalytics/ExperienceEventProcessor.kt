@@ -41,11 +41,15 @@ internal class ExperienceEventProcessor(
         for ((experienceId, eventsForExperience) in eventsByExperienceId) {
             if (experienceId.isEmpty()) continue
 
-            // Send definition to featurization service if not already sent
+            // Send definition to featurization service if not already sent.
+            // Only mark as sent if the queue accepts the hit; otherwise allow retry on the next event.
             if (!state.hasExperienceDefinitionBeenSent(experienceId)) {
-                sendExperienceDefinitionEvent(experienceId)
-                state.markExperienceDefinitionAsSent(experienceId)
-                Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "Sent experience definition | ID: $experienceId")
+                if (sendExperienceDefinitionEvent(experienceId)) {
+                    state.markExperienceDefinitionAsSent(experienceId)
+                    Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "Sent experience definition | ID: $experienceId")
+                } else {
+                    Log.warning(ContentAnalyticsConstants.LOG_TAG, TAG, "Failed to queue experience definition - will retry on next event | ID: $experienceId")
+                }
             } else {
                 Log.debug(ContentAnalyticsConstants.LOG_TAG, TAG, "Skipping featurization - already sent | ID: $experienceId")
             }
@@ -94,8 +98,8 @@ internal class ExperienceEventProcessor(
 
     // MARK: - Private Helpers
 
-    private fun sendExperienceDefinitionEvent(experienceId: String) {
-        featurizationCoordinator.queueExperience(experienceId)
+    private fun sendExperienceDefinitionEvent(experienceId: String): Boolean {
+        return featurizationCoordinator.queueExperience(experienceId)
     }
 
     private fun sendExperienceInteractionEvent(

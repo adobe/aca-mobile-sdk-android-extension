@@ -1,5 +1,15 @@
 # Release Notes
 
+## 3.0.3 (June 9, 2026)
+
+### Bug Fixes
+- **Remote configuration ingestion:** Fixed a parsing bug where the `contentanalytics.` prefix was stripped before lookup against fully-qualified constant keys, causing all `contentanalytics.*` Launch values (batching, exclusions, datastream, region, etc.) to silently revert to defaults.
+- **`registerExperience` definition storage:** Definitions dispatched by the public `ContentAnalytics.registerExperience` API are now correctly stored in state. Previously the orchestrator only read a nested `experienceDefinition` map, so top-level `assets` / `texts` / `ctas` from the public API were ignored, breaking featurization and asset attribution.
+- **Featurization definition state:** Experience definitions are now marked as sent to the featurization service only after the hit is accepted by the queue. Previously the state was flipped unconditionally, preventing in-session retries on failure.
+- **`maxBatchSize` fallback:** When configuration is not yet available, `BatchCoordinator` now falls back to `DEFAULT_BATCH_SIZE` (10) instead of `MAX_BATCH_SIZE_LIMIT` (100).
+
+---
+
 ## 3.0.2 (May 4, 2026)
 
 ### Features

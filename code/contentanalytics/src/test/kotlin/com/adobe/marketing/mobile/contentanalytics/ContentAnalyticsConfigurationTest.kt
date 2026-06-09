@@ -134,5 +134,63 @@ class ContentAnalyticsConfigurationTest {
         assertEquals(10, config.maxBatchSize)
         assertEquals(30000, config.batchFlushInterval)
     }
+
+    // MARK: - fromEventData with realistic Launch payload keys
+    //
+    // Regression guard: ConfigurationKeys constants are fully prefixed (e.g.,
+    // "contentanalytics.batchingEnabled"). A prior bug stripped the prefix in
+    // ContentAnalyticsExtension.parseConfiguration before calling fromEventData,
+    // causing every "contentanalytics.*" Launch value to silently revert to defaults.
+    // These tests exercise fromEventData with the exact key shape Launch produces.
+
+    @Test
+    fun testFromEventData_LaunchStylePrefixedKeys_AppliesValues() {
+        val data = mapOf<String, Any?>(
+            "contentanalytics.batchingEnabled" to false,
+            "contentanalytics.maxBatchSize" to 25,
+            "contentanalytics.batchFlushInterval" to 5000L,
+            "contentanalytics.trackExperiences" to false,
+            "contentanalytics.configId" to "my-datastream-id",
+            "contentanalytics.experienceCloudOrgId" to "ABC@AdobeOrg",
+            "contentanalytics.excludedAssetUrlsRegexp" to ".*\\.gif$",
+            "contentanalytics.excludeAssetsFromUntrackedExperience" to true,
+            "edge.domain" to "edge.adobedc.net",
+            "edge.environment" to "prod",
+            "experienceCloud.org" to "FALLBACK@AdobeOrg"
+        )
+
+        val config = ContentAnalyticsConfiguration.fromEventData(data)
+
+        assertFalse("batchingEnabled should reflect Launch value", config.batchingEnabled)
+        assertEquals("maxBatchSize should reflect Launch value", 25, config.maxBatchSize)
+        assertEquals("batchFlushInterval should reflect Launch value", 5000L, config.batchFlushInterval)
+        assertFalse("trackExperiences should reflect Launch value", config.trackExperiences)
+        assertEquals("datastream id should be parsed from contentanalytics.configId", "my-datastream-id", config.datastreamId)
+        assertEquals("org id should prefer the contentanalytics-specific key", "ABC@AdobeOrg", config.experienceCloudOrgId)
+        assertEquals("edge domain should be parsed", "edge.adobedc.net", config.edgeDomain)
+        assertEquals("edge environment should be parsed", "prod", config.edgeEnvironment)
+        assertEquals("excluded asset URLs regex should be parsed", ".*\\.gif$", config.excludedAssetUrlsRegexp)
+        assertTrue("excludeAssetsFromUntrackedExperience should reflect Launch value", config.excludeAssetsFromUntrackedExperience)
+    }
+
+    @Test
+    fun testFromEventData_OnlyFallbackOrgKey_UsesIt() {
+        val data = mapOf<String, Any?>("experienceCloud.org" to "FALLBACK@AdobeOrg")
+
+        val config = ContentAnalyticsConfiguration.fromEventData(data)
+
+        assertEquals("org id should fall back to experienceCloud.org", "FALLBACK@AdobeOrg", config.experienceCloudOrgId)
+    }
+
+    @Test
+    fun testFromEventData_EmptyData_AppliesDefaults() {
+        val config = ContentAnalyticsConfiguration.fromEventData(emptyMap())
+
+        assertTrue("default trackExperiences", config.trackExperiences)
+        assertTrue("default batchingEnabled", config.batchingEnabled)
+        assertEquals(ContentAnalyticsConstants.Defaults.DEFAULT_BATCH_SIZE, config.maxBatchSize)
+        assertNull(config.datastreamId)
+        assertNull(config.experienceCloudOrgId)
+    }
 }
 

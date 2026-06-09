@@ -132,7 +132,7 @@ internal class BatchCoordinator(
                 assetEventCount++
                 
                 val maxBatchSize = state.configuration?.maxBatchSize 
-                    ?: ContentAnalyticsConstants.Defaults.MAX_BATCH_SIZE_LIMIT
+                    ?: ContentAnalyticsConstants.Defaults.DEFAULT_BATCH_SIZE
                 
                 Log.trace(LOG_TAG, TAG, "Asset event queued: $assetEventCount/$maxBatchSize")
                 
@@ -164,7 +164,7 @@ internal class BatchCoordinator(
                 experienceEventCount++
                 
                 val maxBatchSize = state.configuration?.maxBatchSize 
-                    ?: ContentAnalyticsConstants.Defaults.MAX_BATCH_SIZE_LIMIT
+                    ?: ContentAnalyticsConstants.Defaults.DEFAULT_BATCH_SIZE
                 
                 Log.trace(LOG_TAG, TAG, "Experience event queued: $experienceEventCount/$maxBatchSize")
                 

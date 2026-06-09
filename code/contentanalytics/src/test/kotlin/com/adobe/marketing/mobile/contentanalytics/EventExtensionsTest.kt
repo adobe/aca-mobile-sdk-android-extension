@@ -476,5 +476,64 @@ class EventExtensionsTest {
         // Then
         assertNotEquals("Experience keys should differ for different locations", key1, key2)
     }
+
+    // MARK: - experienceDefinition Resolution Tests
+
+    @Test
+    fun `experienceDefinition resolves nested map layout`() {
+        val nested = mapOf(
+            "experienceId" to "exp-1",
+            ContentAnalyticsConstants.EventDataKeys.ASSETS to listOf("https://example.com/a.jpg"),
+            ContentAnalyticsConstants.EventDataKeys.TEXTS to listOf(mapOf("value" to "headline"))
+        )
+        val event = Event.Builder("Track Experience", ContentAnalyticsConstants.EventType.CONTENT_ANALYTICS, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_DEFINITION to nested))
+            .build()
+
+        val def = event.experienceDefinition
+        assertNotNull(def)
+        assertEquals("exp-1", def?.experienceId)
+        assertEquals(1, def?.assets?.size)
+    }
+
+    @Test
+    fun `experienceDefinition resolves top-level layout when action is definition`() {
+        val event = Event.Builder("Track Experience", ContentAnalyticsConstants.EventType.CONTENT_ANALYTICS, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(
+                ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ID to "exp-2",
+                ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ACTION to InteractionType.DEFINITION.stringValue,
+                ContentAnalyticsConstants.EventDataKeys.ASSETS to listOf("https://example.com/b.jpg"),
+                ContentAnalyticsConstants.EventDataKeys.TEXTS to listOf(mapOf("value" to "Buy"))
+            ))
+            .build()
+
+        val def = event.experienceDefinition
+        assertNotNull(def)
+        assertEquals("exp-2", def?.experienceId)
+        assertEquals(1, def?.assets?.size)
+    }
+
+    @Test
+    fun `experienceDefinition returns null for view or click events with top-level keys`() {
+        // Regression guard: view and click events carry experienceId but no assets/texts/ctas.
+        // Top-level resolution must not fire for them, or an empty definition would overwrite
+        // a previously registered one.
+        val viewEvent = Event.Builder("Track Experience", ContentAnalyticsConstants.EventType.CONTENT_ANALYTICS, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(
+                ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ID to "exp-3",
+                ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ACTION to ContentAnalyticsConstants.ActionType.VIEW
+            ))
+            .build()
+
+        val clickEvent = Event.Builder("Track Experience", ContentAnalyticsConstants.EventType.CONTENT_ANALYTICS, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(
+                ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ID to "exp-3",
+                ContentAnalyticsConstants.EventDataKeys.EXPERIENCE_ACTION to ContentAnalyticsConstants.ActionType.CLICK
+            ))
+            .build()
+
+        assertNull(viewEvent.experienceDefinition)
+        assertNull(clickEvent.experienceDefinition)
+    }
 }
 
