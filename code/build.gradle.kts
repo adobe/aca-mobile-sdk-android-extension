@@ -23,6 +23,6 @@ buildscript {
     dependencies {
         classpath("com.github.adobe:aepsdk-commons:gp-3.4.1")
         // Kotlin Gradle plugin so IDE can resolve kotlin { compilerOptions { } } in subprojects
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25")
     }
 }
